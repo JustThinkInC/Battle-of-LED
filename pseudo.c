@@ -8,15 +8,18 @@
           Both sides defeated?-->curently settling on this
           *
           *Not feeling too comfortable with current sandbag implementation.
-          * Structs are feeling clunky in this scenario...*/
+          * Structs are feeling clunky in this scenario...
+          *
+          * How to point to previous player i.e. player1? Doubly-linked
+          * list seems just a lazy option for this 'simple' scenario
+          *
+          * Need to find how to better initialise bullets instead of having
+          * a create_bullet() call per if conidition.
+          * */
 
 typedef struct sandbag_s SandBags;
 typedef struct bullet_s Bullet;
 typedef struct player_s Player;
-
-static uint8_t max_y_bound;
-static uint8_t min_y_bound;
-
 
 //Struct for sandbag or 2 arrays mapping each sandbag to appropriate coord (row, col)?
 struct sandbag_s {
@@ -31,55 +34,73 @@ struct player_s {
     uint8_t next; //maybe this instead of starter
 };
 
-
 struct bullet_s {
     uint8_t y;
     Player* target;
 }
 
+
+
+Bullet* create_bullet(uint8_t x_pos, uint8_t y_pos, Player target)
+{
+    Bullet* bullet = malloc(sizeof(Bullet));//um no malloc in avr, will change
+    bullet.x = x_pos;
+    bullet.y = y_pos;
+    bullet.target = target;
+
+    return bullet;
+}
+
+
+void damage_sandbag(SandBags* sandbag)
+{
+    sandbag.health--;
+    sandbag.health == 0 ? delete(sandbag) : lower brightness of that sandbag;
+}
+
+
+//Need to shorten this function...a lot!
+//Handles shooting event
 void shoot (Player player)
 {
     uint8_t collided = 0;
-    Bullet* bullet = malloc(sizeof(Bullet));//um no malloc in avr, will change
-    //If player1 fired the shots
+
+    //If player1 fired the shot
     if(player.next != NULL) {
-        
-        bullet.x = player.x;
-        bullet.y = player.y+1;
-        bullet.target = player.next;
-        
-        while(bullet not collided && bullet.y < ROW_NUM) {
+        Bullet* bullet = create_bullet(player.x, player.y+1, player.next);
+
+        while(bullet exists) {
             bullet.y++;
             if(collided) {
                 if(item == target) {
                     game over, player1 wins
                 } else if (item == player2_sandbag) {
-                    sandbag.health--;
-                    sandbag.health == 0 ? delete(sandbag) : lower brightness of that sandbag;
+                    delete(bullet);
+                    damage_sandbag(SandBags* sandbag);
                 }
             }
-            bullet.y >= ROW_NUM ? delete(bullet) : 0;
+            (bullet && bullet.y >= ROW_NUM) ? delete(bullet) : 0;
         }
 
     } else {
         player = player.next;
-        buullet.x = player.x;
-        bullet.y = player.y-1;
-        
-        while(bullet not collided && bullet.y > 0) {
+        Bullet* bullet = create_bullet(player.x, player.y+1, player.prev);
+
+        while(bullet exists) {
             bullet.y--;
             if(collided) {
                 if(item == player) {
                     game over, player2 wins
                 } else if (item == sandbag) {
-                    sandbag.health--;
-                    sandbag.health == 0 ? delete(sandbag) : 0;
+                    delete(bullet);
+                    damaged_sandbag(SandBags* sandbag);
                 }
-            bullet.y <= 0 ? delete(bullet) : 0;
+                (bullet && bullet.y <= 0) ? delete(bullet) : 0;
             }
         }
     }
 }
+
 
 //Initialise ledmatrix
 void led_init(void)
@@ -97,6 +118,8 @@ void led_init(void)
         i++;
     }
 }
+
+
 //Initialise player positions and trenches
 void init_positions (void)
 {
@@ -111,7 +134,7 @@ void init_positions (void)
     while(trench) {
     for current_row and current_column:
         initialise sandbag;
-    trench = trench.next;
+        trench = trench.next;
 }
 }
 
@@ -156,20 +179,20 @@ int main(void)
 
     while(1) {
         //TODO: game...
-        on player move up:
-            move_up(player);
-            
-        on player move_down:
-            move_down(player);
-        
-        on player move_left:
-            move_left(player);
-        
-        on player move_right:
-            move_right(player);
-            
-        on player shoot:
-            shoot(player);
-            
+    on player move up:
+        move_up(player);
+
+    on player move_down:
+        move_down(player);
+
+    on player move_left:
+        move_left(player);
+
+    on player move_right:
+        move_right(player);
+
+    on player shoot:
+        shoot(player);
+
     }
 }
