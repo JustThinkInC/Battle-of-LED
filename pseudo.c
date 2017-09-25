@@ -1,21 +1,32 @@
 //TODO: add appropriate header files
 #include "system.h"
 #include "pio.h"
+#include "button.h"
+#include "tinygl.h"
+#include "../fonts/font3x5_1.h"
 
-/*ISSUES: What happens if both capture each other's trench?
-          Stalemate? Restart? Force players to recapture their trench
-          then attempt to capture enemy's trench? Both sides victor?
-          Both sides defeated?-->curently settling on this
-          *
-          *Not feeling too comfortable with current sandbag implementation.
-          * Structs are feeling clunky in this scenario...
-          *
-          * How to point to previous player i.e. player1? Doubly-linked
-          * list seems just a lazy option for this 'simple' scenario
-          *
-          * Need to find how to better initialise bullets instead of having
-          * a create_bullet() call per if conidition.
-          * */
+/* ISSUES: What happens if both capture each other's trench?
+           Stalemate? Restart? Force players to recapture their trench
+           then attempt to capture enemy's trench? Both sides victor?
+           Both sides defeated?-->curently settling on this
+           *
+           *Not feeling too comfortable with current sandbag implementation.
+           * Structs are feeling clunky in this scenario...
+           *
+           * How to point to previous player i.e. player1? Doubly-linked
+           * list seems just a lazy option for this 'simple' scenario
+           *
+           * Need to find how to better initialise bullets instead of having
+           * a create_bullet() call per if conidition.
+*/
+          
+/* IDEAS: Maybe have LED1 (blue led) flash as soon as opponent in no 
+ *        man's land, with the flash rate proportional to distance from
+ *        your trench?
+ *        Easter egg?
+ *        Selection by country? (use abbrvs since flags need colours)
+ *        Selection by year and/or country? higher year->tougher defence->slightly improved DPS 
+*/
 
 typedef struct sandbag_s SandBags;
 typedef struct bullet_s Bullet;
@@ -69,7 +80,7 @@ void shoot (Player player)
     if(player.next != NULL) {
         Bullet* bullet = create_bullet(player.x, player.y+1, player.next);
 
-        while(bullet exists) {
+        while(bullet) {
             bullet.y++;
             if(collided) {
                 if(item == target) {
@@ -86,7 +97,7 @@ void shoot (Player player)
         player = player.next;
         Bullet* bullet = create_bullet(player.x, player.y+1, player.prev);
 
-        while(bullet exists) {
+        while(bullet) {
             bullet.y--;
             if(collided) {
                 if(item == player) {
@@ -123,19 +134,18 @@ void led_init(void)
 //Initialise player positions and trenches
 void init_positions (void)
 {
-    while(player) {
+    while (player) {
         player.x = (uint8_t) (num_columns / 2); //Center of led matrix
         player.y = (player.next != NULL) ? 0 : num_rows*2;
 
         player = player.next;
     }
-
     //TODO: Initialise trenches
-    while(trench) {
-    for current_row and current_column:
-        initialise sandbag;
+    while (trench) {
+        for current_row and current_column:
+            initialise sandbag;
         trench = trench.next;
-}
+    }
 }
 
 //Movement functions look like the should be modular (imo).
@@ -179,20 +189,16 @@ int main(void)
 
     while(1) {
         //TODO: game...
-    on player move up:
-        move_up(player);
-
-    on player move_down:
-        move_down(player);
-
-    on player move_left:
-        move_left(player);
-
-    on player move_right:
-        move_right(player);
-
-    on player shoot:
-        shoot(player);
-
+        if navswitch_event_p (NAVSWITCHT_NORTH) {
+            move_up(player);
+        } else if navswitch_event_p (NAVSWITCHT_SOUTH) {
+            move_down(player);
+        } else if navswitch_event_p (NAVSWITCHT_WEST) {
+            move_left(player);
+        } else if navswitch_event_p (NAVSWITCHT_EAST) {
+            move_right(player);
+        } else if navswitch_event_p (NAVSWITCHT_DOWN) {
+            shoot(player);
+        }
     }
 }
