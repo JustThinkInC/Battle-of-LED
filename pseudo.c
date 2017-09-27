@@ -18,15 +18,29 @@
            *
            * Need to find how to better initialise bullets instead of having
            * a create_bullet() call per if conidition.
+           *
+           * What happens if two players at same point at same instance and
+           * have not fired at each other?
 */
-          
-/* IDEAS: Maybe have LED1 (blue led) flash as soon as opponent in no 
+
+/* IDEAS: Maybe have LED1 (blue led) flash as soon as opponent in no
  *        man's land, with the flash rate proportional to distance from
  *        your trench?
  *        Easter egg?
  *        Selection by country? (use abbrvs since flags need colours)
- *        Selection by year and/or country? higher year->tougher defence->slightly improved DPS 
+ *        Selection by year and/or country? higher year->tougher defence->slightly improved DPS
+ *        CURRENT: Selection by Attacker/Defender
 */
+
+/* TODO:
+ * Player collision check
+ * Arrays for sandbags
+ * Game function for task scheduler
+ * IR recieve&send
+ * Player1 player2 check
+ * UI Selection
+ * Sound
+ */
 
 typedef struct sandbag_s SandBags;
 typedef struct bullet_s Bullet;
@@ -42,7 +56,8 @@ struct player_s {
     uint8_t x;
     uint8_t y;
     //uint8_t starter; //This acts as a bool to determine who started
-    uint8_t next; //maybe this instead of starter
+    Player* next; //maybe this instead of starter
+    Player* prev;
 };
 
 struct bullet_s {
@@ -69,48 +84,51 @@ void damage_sandbag(SandBags* sandbag)
     sandbag.health == 0 ? delete(sandbag) : lower brightness of that sandbag;
 }
 
+//Check for collisions between bullet other game objects
+static int collision(Player target, Bullet bullet)
+{
+    uint8_t sandbag_number;
+    if(target.x == bullet.x && target.y == bullet.y) {
+        return 1;
+    } else {
+        while(sandbag_number < target_sandbags) {
+            if(target_sandbags[sandbag_number].x == bullet.x &&
+                    target_sandbags[sandbag_number].y == bullet.y) {
+                delete(bullet);
+                damage_sandbag(SandBags* sandbag);
+
+                return 1;
+            }
+            sandbag_number++;
+        }
+    }
+    return 0;
+}
 
 //Need to shorten this function...a lot!
 //Handles shooting event
-void shoot (Player player)
+static void shoot (Player player)
 {
     uint8_t collided = 0;
 
     //If player1 fired the shot
     if(player.next != NULL) {
         Bullet* bullet = create_bullet(player.x, player.y+1, player.next);
-
-        while(bullet) {
-            bullet.y++;
-            if(collided) {
-                if(item == target) {
-                    game over, player1 wins
-                } else if (item == player2_sandbag) {
-                    delete(bullet);
-                    damage_sandbag(SandBags* sandbag);
-                }
-            }
-            (bullet && bullet.y >= ROW_NUM) ? delete(bullet) : 0;
-        }
-
     } else {
-        player = player.next;
-        Bullet* bullet = create_bullet(player.x, player.y+1, player.prev);
+        Bullet* bullet = create_bullet(player.x, player.y+1, player.prev); //previos pointer?!
+    }
 
-        while(bullet) {
-            bullet.y--;
-            if(collided) {
-                if(item == player) {
-                    game over, player2 wins
-                } else if (item == sandbag) {
-                    delete(bullet);
-                    damaged_sandbag(SandBags* sandbag);
-                }
-                (bullet && bullet.y <= 0) ? delete(bullet) : 0;
-            }
+    while(bullet) {
+        //If player1 then move bullet up else down (from p1 perspective!)
+        player.next != null ? bullet.y++ : bulley.y--;
+        collided = collision(player.target);
+        if (!collided) {
+            (bullet.y >= ROW_NUM || bullet.y <= 0) ? delete(bullet) : 0;
         }
     }
+
 }
+
 
 
 //Initialise ledmatrix
@@ -132,7 +150,7 @@ void led_init(void)
 
 
 //Initialise player positions and trenches
-void init_positions (void)
+static void init_positions (void)
 {
     while (player) {
         player.x = (uint8_t) (num_columns / 2); //Center of led matrix
@@ -142,10 +160,10 @@ void init_positions (void)
     }
     //TODO: Initialise trenches
     while (trench) {
-        for current_row and current_column:
-            initialise sandbag;
-        trench = trench.next;
-    }
+    for current_row and current_column:
+        initialise sandbag;
+    trench = trench.next;
+}
 }
 
 //Movement functions look like the should be modular (imo).
@@ -181,24 +199,31 @@ void move_right(Player player)
     player.x < NUM_COLS ? player.x++:0;
 }
 
+//Checks for game events (e.g. movement) and calls neccessary
+//functions to handle them
+void run_game(void)
+{
+    if navswitch_push_event_p (NAVSWITCHT_NORTH) {
+        move_up(player);
+        player_collision_check () ? end_game : 0;
+    } else if navswitch_push_event_p (NAVSWITCHT_SOUTH) {
+        move_down(player);
+        player_collision_check () ? end_game() : 0;
+    } else if navswitch_push_event_p (NAVSWITCHT_WEST) {
+        move_left(player);
+        player_collision_check () ? end_game() : 0;
+    } else if navswitch_push_event_p (NAVSWITCHT_EAST) {
+        move_right(player);
+        player_collision_check () ? end_game() : 0;
+    } else if navswitch_push_event_p (NAVSWITCH_PUSH) {
+        shoot(player);
+    }
+}
 
 int main(void)
 {
     //TODO: Initialisation
     init_positions ();
 
-    while(1) {
-        //TODO: game...
-        if navswitch_event_p (NAVSWITCHT_NORTH) {
-            move_up(player);
-        } else if navswitch_event_p (NAVSWITCHT_SOUTH) {
-            move_down(player);
-        } else if navswitch_event_p (NAVSWITCHT_WEST) {
-            move_left(player);
-        } else if navswitch_event_p (NAVSWITCHT_EAST) {
-            move_right(player);
-        } else if navswitch_event_p (NAVSWITCHT_DOWN) {
-            shoot(player);
-        }
-    }
+    //TODO: TASK SCHEDULER
 }
