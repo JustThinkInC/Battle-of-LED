@@ -3,13 +3,19 @@
 #include "pio.h"
 #include "button.h"
 #include "tinygl.h"
-#include "move.h"
 #include "../fonts/font3x5_1.h"
+
+//My header files
+#include "move.h"
+#include "collision.h"
 
 /* ISSUES/CONCERNS: 
  *     If a player moves up and happens to collide with first sandbag
  *     player.y needs to be incremented by 2. But what if second sandbag? 
- *     Then increment 1, how to know which one? Same issue with down.
+ *     Then increment 1, how to know which one?
+ * 
+ *     How to actually create the sandbag array? My methods currently rely
+ *     on sandbags[sandbag].x?
 */
 
 /** RESOLVED ISSUES:
@@ -61,6 +67,7 @@ struct sandbag_s {
     uint8_t health;
     SandBags* next_sandbag;
 };
+
 
 struct player_s {
     uint8_t x;
@@ -115,14 +122,38 @@ static int sandbag_collision (Player player, uint8_t move_type) {
         x_pos++;
     }
 
-    //Psuedo code for collision
+    //Collision detection...the slow way :'(
     while(sandbag <= us) {
        if(us[sandbag].x == x_pos && us[sandbag].y == y_pos) {
             if(move_type == UP) {
-                first_row_destroyed ? (move_up(); move_up(); return 1): (move_up(); move_up(); move_up(); return 1);
+                //Check if sandbag above exists, if so player needs to 
+                //'jump' the trench
+                if(!us[sandbag.x].y) {
+                    move_up(); 
+                    move_up(); 
+                    
+                    return 1;
+                } else {
+                    move_up();
+                    move_up();
+                    move_up(); 
+                    
+                    return 1;
+                }
             } else if (move_type == DOWN) {
-                first_row_destroyed && !second_row_destroyed ? (move_down() ; move_down(); return 1) : 0;
-                second_row_destroyed ? (move_down (); move_down(); return 1);
+                if(player.y == 2 || player.y == NUM_ROWS - 2) {
+                    move_down();
+                    move_down();
+                     
+                    return 1;
+                } else {
+                    move_down();
+                    move_down();
+                    move_down();
+                    
+                    return 1;
+                }
+                
             } else if (move_type == LEFT) {
                 left_sandbag_of_left_destroyed ? (move_left() : 0);
                 return 1;
@@ -285,6 +316,7 @@ void move_right(Player player)
 void run_game(void)
 {
     uint8_t col_type = 0;
+    
     if navswitch_push_event_p (NAVSWITCHT_NORTH) {
         col_type = sandbag_collision(player, UP);
         (col_type == 0) ? move_up(player) : 0;
