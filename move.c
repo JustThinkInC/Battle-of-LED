@@ -1,6 +1,11 @@
+/* Description: Code for player movement functions.
+ * Author: George Khella
+ * Date: September 2017
+ */
+
 #include "move.h"
 
-void move_up(Player player)
+void move_up(Player* player)
 {
     if(player.next != NULL) {
         player.y < NUM_ROWS ? player.y++ : 0;
@@ -9,7 +14,7 @@ void move_up(Player player)
     }
 }
 
-void move_down(Player player)
+void move_down(Player* player)
 {
     //Check if player1 or player2
     if(player.next != NULL) {
@@ -19,10 +24,14 @@ void move_down(Player player)
     }
 }
 
-void move_left(Player player)
+void move_left(Player* player)
 {
     //Check player is not at left edge of led matrix
     player.x > 0 ? player.x--:0;
 }
 
-void move_right(Player player)
+void move_right(Player* player)
+{
+    //Check player is not at right edge of led matrix
+    player.x < NUM_COLS ? player.x++:0;
+}

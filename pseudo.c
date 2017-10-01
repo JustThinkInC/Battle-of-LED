@@ -5,17 +5,19 @@
 #include "tinygl.h"
 #include "../fonts/font3x5_1.h"
 
-//My header files
+//My (George Khella) header files
 #include "move.h"
 #include "collision.h"
+#include "hashmap.h"
 
-/* ISSUES/CONCERNS: 
- *     If a player moves up and happens to collide with first sandbag
- *     player.y needs to be incremented by 2. But what if second sandbag? 
- *     Then increment 1, how to know which one?
- * 
- *     How to actually create the sandbag array? My methods currently rely
- *     on sandbags[sandbag].x?
+/* ISSUES/CONCERNS:
+ *     Due to the way collision checking works, sandbag struct cannot be
+ *     turned into an array. However, I have made a "trench" which is an
+ *     array of sandbags. The method should be completely working.
+ *
+ *     For efficiency reasons, will need to use a spatial hash map
+ *     (i.e. hashtable of occupied coords) to speed up collision checking:
+ *     from O(n) to O(1).
 */
 
 /** RESOLVED ISSUES:
@@ -23,7 +25,16 @@
  * Previous player pointer --> doubly-linked list
  * Player selection --> Attacker, Defender
  * Players at same coord --> Christmas Truce
- *
+ * Knowin sandbags above, below and right/left of current sandbag for collision checking
+ * 
+ **/
+ 
+/** COMPLETED TASKS:
+ * Player collision check
+ * Sandbag collision check w/ hashmap
+ * Trench/sandbag initialise
+ * Movement
+ * Shooting
  **/
 
 /** IDEAS: Maybe have LED1 (blue led) flash as soon as opponent in no
@@ -35,46 +46,54 @@
 **/
 
 /* TODO:
- * Player collision check
- * Arrays for sandbags
- * Trench/sandbag initialisation
+ * Player collision check -- done! (efficiently) :)
+ * Arrays for sandbags -- cancelled, see ISSUES/CONCERNS
+ * Trench/sandbag initialisation -- done!
  * Game function for task scheduler
  * IR recieve&send
  * Check wich board is P1
+ * Christmas truce
+ * Game over
  * UI Selection
  * Sound
  */
- 
+
 //Polling rate of tasks in Hz
 //Values may need adjustmenst after testing.
 #defne DISPLAY_TASK_RATE 250
 #define GAME_TASK_RATE 100
- 
+
 //Movement types and values
 #define UP 1
 #define DOWN 2
 #define LEFT 3
 #define RIGHT 4
-#define NONE 0
 
-typedef struct sandbag_s SandBags;
+//Trench and sandbag related values
+#define TRENCH_DEPTH 2;
+#define SANDBAG_HEALTH 2;
+
+
+typedef struct sandbag_s SandBag;
 typedef struct bullet_s Bullet;
 typedef struct player_s Player;
+
 
 //Struct for sandbag or 2 arrays mapping each sandbag to appropriate coord (row, col)?
 //--->arrays
 struct sandbag_s {
     uint8_t health;
-    SandBags* next_sandbag;
+    uint8_t x;
+    uint8_t y;
+    Player* parent;
 };
-
 
 struct player_s {
     uint8_t x;
     uint8_t y;
     Player* next;
     Player* prev;
-    SandBags* sandbags;
+    SandBag sandbags[NUM_COLS*2];
 };
 
 struct bullet_s {
@@ -84,36 +103,115 @@ struct bullet_s {
 }
 
 
+static int hash_table_size = NUM_COLS * TRENCH_DEPTH * 2; //Double so load_factor = 0.5
+static SandBag hash_table[hash_table_size];
+
+
+
+/*The most simplistic version of a hash function...
+  Takes either a sandbag or player if player is null, we hash sandbag
+  and vice versa. */
+int hash(int coord)
+{
+    int number = coord % hash_table_size;
+
+    return number;
+}
+
+//Add item to hash table using Open Addressing with Linear Probing
+//Only need sandbags in hashtable so player parameter non-existent
+void hash_add(SandBag sandbag)
+{
+    int hash_slot = hash(sandbag);
+
+    if (!hash_table[hash_slot]) {
+        hash_table[hash_slot] = sandbag;
+    } else {
+        while(hash_table[hash_slot]) {
+            hash_slot ++;
+            hash_slot >= hash_table_size ? hash_slot = 0 : 0;
+        }
+        hash_table[hash_slot] = sandbag;
+    }
+
+}
+
+//Check whether the hash table contains a sandbag at current players coord.
+//Returns NULL if no sandbag at player's coord
+SandBag hash_contains(Player player, Bullet bullet)
+{
+    if (player) {
+        Player item = player; 
+    } else {
+        Bullet item = bullet;
+    }
+    int first_hash = hash(item.x+item.y);
+    have_wrapped = 0;
+    SandBag sandbag = hash_table[first_hash];
+
+    if (sandbag.x == item.x && sandbag.y == item.y) {
+        return sandbag;
+    } else {
+        int current_index = first_hash;
+
+        while (hash_table[current_index] != NULL) {
+            sandbag = hash_table[current_index];
+            if (sandbag.x == item.x && sandbag.y == item.y) {
+                return sandbag;
+            }
+            if ((current_index == first_hash) && have_wrapped) {
+                //Item not found, hashtable full
+                return NULL;
+            }
+            if (current_index == (hash_table_size-1)) {
+                //Wrap back to start of hash table
+                current_index = 0;
+                have_wrapped = 1;
+            } else {
+                current_index += 1;
+            }
+
+            return NULL;
+        }
+    }
+}
 
 Bullet* create_bullet(uint8_t x_pos, uint8_t y_pos, Player target)
 {
-    Bullet* bullet = malloc(sizeof(Bullet));//um no malloc in avr, need to change
-    bullet.x = x_pos;
-    bullet.y = y_pos;
-    bullet.target = target;
+    Bullet* bullet = {x_pos, y_pos, target};
+    /*  bullet.x = x_pos;
+        bullet.y = y_pos;
+        bullet.target = target;
+    */
 
     return bullet;
 }
 
 
-void damage_sandbag(SandBags* sandbag)
+void damage_sandbag(SandBag* sandbag)
 {
     sandbag.health--;
-    sandbag.health == 0 ? delete(sandbag) : lower brightness of that sandbag;
+    sandbag.health == 0 ? (sandbag = NULL) : lower brightness of that sandbag;
 }
 
-//
-static int sandbag_collision (Player player, uint8_t move_type) {
-    
-    SandBags us = player.sandbags;
-    (SandBags them = ) player.next != NULL ? player.next : player.prev;
-    
-    uint8_t sandbag = 0;
+//Check if player collided with a sandbag
+//Return 0, no collision
+//Return 1, collision with friendly sandbag, collision resolved
+//Return 2, collision with enemy sandbag
+static int sandbag_collision (Player* player, uint8_t move_type)
+{
+    SandBag us = player.sandbags;
+    (SandBag them = ) player.next != NULL ? player.next : player.prev;
+
+    /*Create a dummy variable to hold the player's new positions if 
+      desire movemet were to occur. */
+    Player new = player;
     uint8_t x_pos = player.x;
     uint8_t y_pos = player.y;
-    
+
     if(move_type == UP) {
         y_pos++;
+     
     } else if (move_type == DOWN) {
         y_pos--;
     } else if (move_type == LEFT) {
@@ -121,106 +219,112 @@ static int sandbag_collision (Player player, uint8_t move_type) {
     } else if(move_type == RIGHT) {
         x_pos++;
     }
+    new.y = y_pos;
+    new.x = x_pos;
 
-    //Collision detection...the slow way :'(
-    while(sandbag <= us) {
-       if(us[sandbag].x == x_pos && us[sandbag].y == y_pos) {
-            if(move_type == UP) {
-                //Check if sandbag above exists, if so player needs to 
-                //'jump' the trench
-                if(!us[sandbag.x].y) {
-                    move_up(); 
-                    move_up(); 
-                    
+    //Collision detection O(1) way...
+    SandBag sandbag = hash_contains(new);
+    if (!sandbag) {
+        return 0;
+    } else if (sandbag) {
+        if (sandbag.parent != player) {
+            return 2;
+        } else {
+            if (move_type == UP) {
+                //If sandbag above doesn't exist
+                if !us[sandbag.x].y{
+                    move_up();
+                    move_up();
+
                     return 1;
                 } else {
                     move_up();
                     move_up();
-                    move_up(); 
-                    
+                    move_up();
+
                     return 1;
                 }
             } else if (move_type == DOWN) {
                 if(player.y == 2 || player.y == NUM_ROWS - 2) {
                     move_down();
                     move_down();
-                     
+
                     return 1;
                 } else {
                     move_down();
                     move_down();
                     move_down();
-                    
+
                     return 1;
                 }
-                
             } else if (move_type == LEFT) {
-                left_sandbag_of_left_destroyed ? (move_left() : 0);
-                return 1;
-            } else if (move_type ==  RIGHT) {
-                right_sandbag_of_right_destroyed ? (move_right() : 0);
-                return 1;
+                if (player[sandbag.x-1]) {
+                    if (player[sandbag.x].y == y_pos) {
+                        move_left;
+                    }
+                }
+            } else if (move_type == RIGHT) {
+                if (player[sandbag.x+1]) {
+                    if (player[sandbag.x].y == y_pos) {
+                        move_right ();
+                    }
+                }
             }
-        } else if(them[sandbag].x == x_pos && them[sandbag].y == y_pos) {
-            return 1;
         }
-        sandbag++;
     }
-    
-    
+
+
     return 0;
-} 
+}
 
 //This function checks for collision between player and opponent
-static int player_collision_check (Player player)
+static int player_collision_check (Player* player)
 {
     uint8_t x_pos = player.x;
     uint8_t y_pos = player.y;
-    
+
     //Check if players on same coord (collision)
     if(player.next != NULL) {
         if (x_pos == player.next.x && y_pos == player.next.y) {
+            christmas_truce();
             return 1;
         }
     } else {
         if (x_pos == player.prev.x && y_pos == player.prev.y) {
-            return 1;
+            christmas_truce();
         }
     }
-    
+
     return 0;
 }
 
 //Check for collisions between bullet other game objects
-static int bullet_collision(Bullet bullet)
+static int bullet_collision(Bullet* bullet)
 {
-    uint8_t sandbag_number = 0;
-    SandBags sandbags = bullet.target.sandbags;
-    
-    if(bullet.target.x == bullet.x && bullet.target.y == bullet.y) {
-        return 1;
-    } else {
-        while(sandbag_number <= sandbags) {
-            
-            if(sandbags[sandbag_number].x == bullet.x &&
-                    sandbags[sandbag_number].y == bullet.y) {
-                damage_sandbag(sandbags[sandbag_number]);
-                delete(bullet);
+    SandBag sandbags = bullet.target.sandbags;
+    Player target = bullet.target;
+    while (bullet) {
+        SandBag sandbag = hash_contain(bullet);
+        if (sandbag) {
+            if (sandbag.parent == bullet.target) {
+                damage_sandbag(sandbag);
+                bullet = NULL; //Delete bulllet?!
                 
                 return 1;
             }
-            
-            sandbag_number++;
+        } else if (bullet.x == target.x && bullet.y == target.y) {
+            bullet = NULL;
+            end_game();
         }
     }
-    
-    
+
+
     return 0;
 }
 
 //Need to shorten this function...a lot!
 //Handles shooting event
-static void shoot (Player player)
+static void shoot (Player* player)
 {
     uint8_t collided = 0;
 
@@ -262,7 +366,7 @@ void led_init(void)
 
 
 //Initialise player positions and trenches
-static void init_positions (void)
+static void init_positions (Player* player)
 {
     while (player) {
         player.x = (uint8_t) (num_columns / 2); //Center of led matrix
@@ -270,17 +374,37 @@ static void init_positions (void)
 
         player = player.next;
     }
+
+    player = player.prev;
+
     //TODO: Initialise trenches
-    while (trench) {
-    for current_row and current_column:
-        initialise sandbag;
-    trench = trench.next;
-}
+    SandBag trench[TRENCH_DEPTH];
+
+    int i = 0;
+    int x_pos = 0;
+    int y_pos = 1;
+
+    while (player) {
+        while (i < TRENCH_DEPTH) {
+            if(x_pos > NUM_COLS) {
+                x_pos = 0;
+                y_pos++;
+            }
+            trench[i].x = x_pos;
+            trench[i].y = y_pos;
+            trench[i].health = SANDBAG_HEALTH;
+            trench[i].parent = player;
+            hash_add(trench[i]);
+            x_pos++;
+        }
+        player.sandbags = trench;
+        player = player.next;
+    }
 }
 
 //Movement functions look like the should be modular (imo).
 //Refer to the image if confused about how the coord system works here
-void move_up(Player player)
+void move_up(Player* player)
 {
     if(player.next != NULL) {
         player.y < NUM_ROWS ? player.y++ : 0;
@@ -289,7 +413,7 @@ void move_up(Player player)
     }
 }
 
-void move_down(Player player)
+void move_down(Player* player)
 {
     //Check if player1 or player2
     if(player.next != NULL) {
@@ -299,13 +423,13 @@ void move_down(Player player)
     }
 }
 
-void move_left(Player player)
+void move_left(Player* player)
 {
     //Check player is not at left edge of led matrix
     player.x > 0 ? player.x--:0;
 }
 
-void move_right(Player player)
+void move_right(Player* player)
 {
     //Check player is not at right edge of led matrix
     player.x < NUM_COLS ? player.x++:0;
@@ -316,13 +440,13 @@ void move_right(Player player)
 void run_game(void)
 {
     uint8_t col_type = 0;
-    
+
     if navswitch_push_event_p (NAVSWITCHT_NORTH) {
         col_type = sandbag_collision(player, UP);
         (col_type == 0) ? move_up(player) : 0;
     } else if navswitch_push_event_p (NAVSWITCHT_SOUTH) {
         col_type = sandbag_collision(player, DOWN);
-        (col_type == 0) ? move_down(player) : 0;        
+        (col_type == 0) ? move_down(player) : 0;
     } else if navswitch_push_event_p (NAVSWITCHT_WEST) {
         col_type = sandbag_collision(player, LEFT);
         (col_type == 0) ? move_left(player) : 0;
@@ -332,7 +456,7 @@ void run_game(void)
     } else if navswitch_push_event_p (NAVSWITCH_PUSH) {
         shoot(player);
     }
-    
+
     col_type = player_collision_check (player);
     col_type ? end_game() : 0;
 }
