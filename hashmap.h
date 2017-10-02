@@ -6,7 +6,7 @@
 */
 
 
-static int hash_table_size = NUM_COLS * TRENCH_DEPTH * 2; //Double so load_factor = 0.5
+static int hash_table_size = NUM_COLS * TRENCH_DEPTH * 4; //Double so load_factor = 0.5
 static SandBag hash_table[hash_table_size];
 
 /*The most simplistic version of a hash function...

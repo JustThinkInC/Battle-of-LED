@@ -46,6 +46,7 @@
 **/
 
 /* TODO:
+ * Fix hash table collision bug 
  * Player collision check -- done! (efficiently) :)
  * Arrays for sandbags -- cancelled, see ISSUES/CONCERNS
  * Trench/sandbag initialisation -- done!
@@ -60,7 +61,7 @@
 
 //Polling rate of tasks in Hz
 //Values may need adjustmenst after testing.
-#defne DISPLAY_TASK_RATE 250
+#define DISPLAY_TASK_RATE 250
 #define GAME_TASK_RATE 100
 
 //Movement types and values
@@ -70,8 +71,8 @@
 #define RIGHT 4
 
 //Trench and sandbag related values
-#define TRENCH_DEPTH 2;
-#define SANDBAG_HEALTH 2;
+#define TRENCH_DEPTH 2
+#define SANDBAG_HEALTH 2
 
 
 typedef struct sandbag_s SandBag;
@@ -100,20 +101,27 @@ struct bullet_s {
     uint8_t x;
     uint8_t y;
     Player* target;
-}
+};
 
-
-static int hash_table_size = NUM_COLS * TRENCH_DEPTH * 2; //Double so load_factor = 0.5
+/*Hash table size is calculated as follows:
+ (Num_Cols * Trench_depth) * displays * 2 + 1
+ multiply by 2 is to have a load factor of 0.5 and add 1 to have a prime
+ table size to reduce collision chances, so in our case we have:
+ 2 displays so multiplier is 4. 
+ Note: hash_table_size here is 57
+*/
+static uint8_t hash_table_size = NUM_COLS * TRENCH_DEPTH * 4 + 1;
 static SandBag hash_table[hash_table_size];
 
 
-
-/*The most simplistic version of a hash function...
-  Takes either a sandbag or player if player is null, we hash sandbag
-  and vice versa. */
-int hash(int coord)
+/*Hash function that takes an x and y coord multiplies each one by an 
+ arbitrarily chosen number then computes the result modulo hash table size*/
+uint8_t hash(uint8_t x, uint8_t y)
 {
-    int number = coord % hash_table_size;
+    /*This formula gives different hashes for our scenario,
+    The 'magic' numbers here are arbitrary, other numbers can be used
+    */
+    uint8_t number = ((x*3 + y*4) << 3) % hash_table_size;
 
     return number;
 }
@@ -122,58 +130,26 @@ int hash(int coord)
 //Only need sandbags in hashtable so player parameter non-existent
 void hash_add(SandBag sandbag)
 {
-    int hash_slot = hash(sandbag);
-
-    if (!hash_table[hash_slot]) {
-        hash_table[hash_slot] = sandbag;
-    } else {
-        while(hash_table[hash_slot]) {
-            hash_slot ++;
-            hash_slot >= hash_table_size ? hash_slot = 0 : 0;
-        }
-        hash_table[hash_slot] = sandbag;
-    }
-
+    uint8_t hash_slot = hash(sandbag.x, sandbag.y);
+    hash_table[hash_slot] = sandbag;
 }
 
 //Check whether the hash table contains a sandbag at current players coord.
 //Returns NULL if no sandbag at player's coord
 SandBag hash_contains(Player player, Bullet bullet)
 {
-    if (player) {
-        Player item = player; 
-    } else {
-        Bullet item = bullet;
-    }
-    int first_hash = hash(item.x+item.y);
-    have_wrapped = 0;
-    SandBag sandbag = hash_table[first_hash];
+    player ? (Player item = player) : (Bullet item = bullet);
+    
+    uint8_t hash_slot = hash(item.x, item.y);
+    SandBag sandbag = hash_table[hash_slot];
 
-    if (sandbag.x == item.x && sandbag.y == item.y) {
-        return sandbag;
-    } else {
-        int current_index = first_hash;
-
-        while (hash_table[current_index] != NULL) {
-            sandbag = hash_table[current_index];
-            if (sandbag.x == item.x && sandbag.y == item.y) {
-                return sandbag;
-            }
-            if ((current_index == first_hash) && have_wrapped) {
-                //Item not found, hashtable full
-                return NULL;
-            }
-            if (current_index == (hash_table_size-1)) {
-                //Wrap back to start of hash table
-                current_index = 0;
-                have_wrapped = 1;
-            } else {
-                current_index += 1;
-            }
-
-            return NULL;
-        }
-    }
+    if(sandbag) {
+        if (sandbag.x == item.x && sandbag.y == item.y) {
+            return sandbag;
+        } 
+    
+    
+    return NULL;
 }
 
 Bullet* create_bullet(uint8_t x_pos, uint8_t y_pos, Player target)
@@ -198,7 +174,7 @@ void damage_sandbag(SandBag* sandbag)
 //Return 0, no collision
 //Return 1, collision with friendly sandbag, collision resolved
 //Return 2, collision with enemy sandbag
-static int sandbag_collision (Player* player, uint8_t move_type)
+static uint8_t sandbag_collision (Player* player, uint8_t move_type)
 {
     SandBag us = player.sandbags;
     (SandBag them = ) player.next != NULL ? player.next : player.prev;
@@ -233,27 +209,27 @@ static int sandbag_collision (Player* player, uint8_t move_type)
             if (move_type == UP) {
                 //If sandbag above doesn't exist
                 if !us[sandbag.x].y{
-                    move_up();
-                    move_up();
+                    move_up(player);
+                    move_up(player);
 
                     return 1;
                 } else {
-                    move_up();
-                    move_up();
-                    move_up();
+                    move_up(player);
+                    move_up(player);
+                    move_up(player);
 
                     return 1;
                 }
             } else if (move_type == DOWN) {
                 if(player.y == 2 || player.y == NUM_ROWS - 2) {
-                    move_down();
-                    move_down();
+                    move_down(player);
+                    move_down(player);
 
                     return 1;
                 } else {
-                    move_down();
-                    move_down();
-                    move_down();
+                    move_down(player);
+                    move_down(player);
+                    move_down(player);
 
                     return 1;
                 }
@@ -278,7 +254,7 @@ static int sandbag_collision (Player* player, uint8_t move_type)
 }
 
 //This function checks for collision between player and opponent
-static int player_collision_check (Player* player)
+static uint8_t player_collision_check (Player* player)
 {
     uint8_t x_pos = player.x;
     uint8_t y_pos = player.y;
@@ -299,7 +275,7 @@ static int player_collision_check (Player* player)
 }
 
 //Check for collisions between bullet other game objects
-static int bullet_collision(Bullet* bullet)
+static uint8_t bullet_collision(Bullet* bullet)
 {
     SandBag sandbags = bullet.target.sandbags;
     Player target = bullet.target;
@@ -351,7 +327,7 @@ static void shoot (Player* player)
 void led_init(void)
 {
     //NOT PSUEDO, proper functioning code
-    int i = 0;
+    uint8_t i = 0;
     while (i <= LEDMAT_ROWS_NUM - 1) {
         pio_config_set(rows[i], PIO_OUTPUT_HIGH);
         i++;
@@ -380,9 +356,9 @@ static void init_positions (Player* player)
     //TODO: Initialise trenches
     SandBag trench[TRENCH_DEPTH];
 
-    int i = 0;
-    int x_pos = 0;
-    int y_pos = 1;
+    uint8_t i = 0;
+    uint8_t x_pos = 0;
+    uint8_t y_pos = 1;
 
     while (player) {
         while (i < TRENCH_DEPTH) {
@@ -441,19 +417,19 @@ void run_game(void)
 {
     uint8_t col_type = 0;
 
-    if navswitch_push_event_p (NAVSWITCHT_NORTH) {
+    if (navswitch_push_event_p (NAVSWITCHT_NORTH)) {
         col_type = sandbag_collision(player, UP);
         (col_type == 0) ? move_up(player) : 0;
-    } else if navswitch_push_event_p (NAVSWITCHT_SOUTH) {
+    } else if (navswitch_push_event_p (NAVSWITCHT_SOUTH)) {
         col_type = sandbag_collision(player, DOWN);
         (col_type == 0) ? move_down(player) : 0;
-    } else if navswitch_push_event_p (NAVSWITCHT_WEST) {
+    } else if (navswitch_push_event_p (NAVSWITCHT_WEST)) {
         col_type = sandbag_collision(player, LEFT);
         (col_type == 0) ? move_left(player) : 0;
-    } else if navswitch_push_event_p (NAVSWITCHT_EAST) {
+    } else if (navswitch_push_event_p (NAVSWITCHT_EAST)) {
         col_type = sandbag_collision(player, RIGHT);
         (col_type == 0) ? move_right(player) : 0;
-    } else if navswitch_push_event_p (NAVSWITCH_PUSH) {
+    } else if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
         shoot(player);
     }
 
@@ -474,4 +450,6 @@ int main(void)
 
     //TODO: TASK SCHEDULER
     task_schedule (tasks, ARRAY_SIZE (tasks));
+    
+    return 0;
 }
