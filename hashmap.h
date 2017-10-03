@@ -6,19 +6,22 @@
 */
 
 
-static int hash_table_size = NUM_COLS * TRENCH_DEPTH * 4; //Double so load_factor = 0.5
-static SandBag hash_table[hash_table_size];
+#include "struct_init.h"
+#include "pio.h"
 
-/*The most simplistic version of a hash function...
-  Takes either a sandbag or player if player is null, we hash sandbag
-  and vice versa. */
-int hash(int coord)
+#ifndef HASHMAP_H
+#define HASHMAP_H
+//Trench and sandbag related values
+#define TRENCH_DEPTH 2
+
+uint8_t hash(uint8_t x, uint8_t y);
 
 //Add item to hash table using Open Addressing with Linear Probing
 //Only need sandbags in hashtable so player parameter non-existent
-void hash_add(SandBag sandbag)
+void hash_add(SandBag sandbag);
 
 //Check whether the hash table contains a sandbag at current players coord.
 //Returns NULL if no sandbag at player's coord
-SandBag hash_contains(Player player, Bullet bullet)
+SandBag hash_contains(uint8_t x, uint8_t y);
+#endif
 

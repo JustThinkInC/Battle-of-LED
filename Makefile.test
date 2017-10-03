@@ -10,11 +10,11 @@ DEL = rm
 
 
 # Default target.
-all: game
+all: pseudo
 
 
 # Compile: create object files from C source files.
-game-test.o: game.c ../../drivers/test/system.h
+pseudo-test.o: pseudo.c ../../drivers/test/system.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 mgetkey-test.o: ../../drivers/test/mgetkey.c ../../drivers/test/mgetkey.h
@@ -30,14 +30,14 @@ system-test.o: ../../drivers/test/system.c ../../drivers/test/avrtest.h ../../dr
 
 
 # Link: create executable file from object files.
-game: game-test.o mgetkey-test.o pio-test.o system-test.o
+pseudo: pseudo-test.o mgetkey-test.o pio-test.o system-test.o
 	$(CC) $(CFLAGS) $^ -o $@ -lrt
 
 
 # Clean: delete derived files.
 .PHONY: clean
 clean: 
-	-$(DEL) game game-test.o mgetkey-test.o pio-test.o system-test.o
+	-$(DEL) pseudo pseudo-test.o mgetkey-test.o pio-test.o system-test.o
 
 
 

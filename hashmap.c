@@ -1,75 +1,58 @@
 /* Description: Code file for hash map used by collision checker.
- *              Every sandbag is hashed into a hash table. Collision
- *              between hashes is resolved by Open Addressing with Linear
- *              Probing.
+ *              Every sandbag is hashed into a hash table.
  * Author: George Khella
  * Date: October 2017
 */
 
-/*The most simplistic version of a hash function...
-  Takes either a sandbag or player if player is null, we hash sandbag
-  and vice versa. */
-int hash(int coord)
+
+#include "hashmap.h"
+#include "struct_init.h"
+#include "pio.h"
+
+/*Hash table size is calculated as follows:
+ (Num_Cols * Trench_depth) * displays * 2 + 1
+ multiply by 2 is to have a load factor of 0.5 and add 1 to have a prime
+ table size to reduce collision chances, so in our case we have:
+ 2 displays so multiplier is 4. 
+ Note: hash_table_size here is 57
+*/
+uint8_t hash_table_size = LEDMAT_ROWS_NUM * TRENCH_DEPTH * 4 + 1;
+SandBag hash_table[LEDMAT_ROWS_NUM * TRENCH_DEPTH * 4 + 1];
+
+
+/*Hash function that takes an x and y coord multiplies each one by an 
+ arbitrarily chosen number then computes the result modulo hash table size*/
+uint8_t hash(uint8_t x, uint8_t y)
 {
-    int number = coord % hash_table_size;
+    /*This formula gives different hashes for our scenario,
+    The 'magic' numbers here are arbitrary, other numbers can be used
+    */
+    uint8_t number = ((x*3 + y*4) << 3) % hash_table_size;
 
     return number;
 }
 
-//Add item to hash table using Open Addressing with Linear Probing
-//Only need sandbags in hashtable so player parameter non-existent
+//Add sandbag to hashtable
 void hash_add(SandBag sandbag)
 {
-    int hash_slot = hash(sandbag);
-
-    if (!hash_table[hash_slot]) {
-        hash_table[hash_slot] = sandbag;
-    } else {
-        while(hash_table[hash_slot]) {
-            hash_slot ++;
-            hash_slot >= hash_table_size ? hash_slot = 0 : 0;
-        }
-        hash_table[hash_slot] = sandbag;
-    }
-
+    uint8_t hash_slot = hash(sandbag.x, sandbag.y);
+    hash_table[hash_slot] = sandbag;
 }
 
 //Check whether the hash table contains a sandbag at current players coord.
-//Returns NULL if no sandbag at player's coord
-SandBag hash_contains(Player player, Bullet bullet)
+//Returns dud sandbag if no sandbag at player's coord
+SandBag hash_contains(uint8_t x, uint8_t y)
 {
-    if (player) {
-        Player item = player; 
-    } else {
-        Bullet item = bullet;
-    }
-    int first_hash = hash(item.x+item.y);
-    have_wrapped = 0;
-    SandBag sandbag = hash_table[first_hash];
+    uint8_t hash_slot = hash(x, y);
+    SandBag sandbag = hash_table[hash_slot];
+    SandBag dud;
+    dud.x = 0;
+    dud.y = 0;
+    dud.health = 0;
 
-    if (sandbag.x == item.x && sandbag.y == item.y) {
+    if (sandbag.x == x && sandbag.y == y && sandbag.health > 0) {
         return sandbag;
-    } else {
-        int current_index = first_hash;
-
-        while (hash_table[current_index] != NULL) {
-            sandbag = hash_table[current_index];
-            if (sandbag.x == item.x && sandbag.y == item.y) {
-                return sandbag;
-            }
-            if ((current_index == first_hash) && have_wrapped) {
-                //Item not found, hashtable full
-                return NULL;
-            }
-            if (current_index == (hash_table_size-1)) {
-                //Wrap back to start of hash table
-                current_index = 0;
-                have_wrapped = 1;
-            } else {
-                current_index += 1;
-            }
-
-            return NULL;
-        }
     }
+
+    return dud;
 }

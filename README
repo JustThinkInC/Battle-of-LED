@@ -1,0 +1,16 @@
+Use this directory for your final game and its module(s).  Only the
+files in this directory will be marked.
+
+Ensure you use the git add command to add your files to the git
+repository.  For example,
+
+git add module.c
+
+Then use the git commit command to add the file contents
+
+git commit -m "Added file" module.c
+
+The use the git push command to copy the changes to the remote git server
+
+git push
+
