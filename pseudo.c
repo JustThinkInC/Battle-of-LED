@@ -7,13 +7,13 @@
 #include "task.h"
 //#include "../fonts/font3x5_1.h"
 #include "navswitch.h"
+#include "led.h"
 
 //My (George Khella) header files
 #include "struct_init.h"
 #include "hashmap.h"
 #include "move.h"
 #include "collision.h"
-
 
 
 /* ISSUES/CONCERNS:
@@ -130,14 +130,15 @@ static void shoot (Player* player)
     Bullet* bullet;
     //If player1 fired the shot
     if(player->next != NULL) {
-        bullet = create_bullet(player->pos.x, player->pos.y+1, player->next);
+        bullet = create_bullet(player->pos.x, player->pos.y-1, player->next);
     } else {
         bullet = create_bullet(player->pos.x, player->pos.y+1, player->prev);
     }
     Player* target = bullet->target;
     while(bullet != NULL) {
+
         //If player1 then move bullet up else down (from p1 perspective!)
-        player->next != NULL ? bullet->pos.y++ : bullet->pos.y--;
+        player->next != NULL ? bullet->pos.y-- : bullet->pos.y--;
         SandBag sandbag = hash_contains(bullet->pos.x, bullet->pos.y);
 
         if (sandbag.health > 0 && sandbag.parent == target) {
@@ -145,10 +146,10 @@ static void shoot (Player* player)
             bullet = NULL;
         } else if (bullet->pos.x == target->pos.x && bullet->pos.y == target->pos.y) {
             bullet = NULL;
+            led_set (LED1, 1);
             //end_game();
         } else {
-            
-            (bullet->pos.y >= LEDMAT_ROWS_NUM || bullet->pos.y <= 0) ? bullet = NULL : 0;
+            (bullet->pos.y >= LEDMAT_ROWS_NUM || bullet->pos.y < 0) ? bullet = NULL : 0;
         }
     }
 }
@@ -160,50 +161,58 @@ static void display_task (__unused__ void *data)
 
     tinygl_draw_point (player1.old, 0);
     tinygl_draw_point (player1.pos, 1);
+    tinygl_draw_point (player2.old, 0);
+    tinygl_draw_point (player2.pos, 1);
     
-
-    uint8_t i = 0;
-    while(i < 14) {
-        SandBag sandbag = player1.sandbags[i];
-       
-        if (sandbag.health > 0) {
-            SandBag dummy = sandbag;
-            dummy.pos.x = 6 - sandbag.pos.x;
-            dummy.pos.y = 4 - sandbag.pos.y;
-            tinygl_draw_point (dummy.pos, 1);
+    Player* player = &player1;
+    
+    while (player != NULL) {
+        uint8_t i = 0;
+        while(i < SANDBAG_NUM) {
+            SandBag sandbag = player->sandbags[i];
+            if (sandbag.health > 0) {
+                tinygl_draw_point (sandbag.pos, 1);
+            }
+            i++;
         }
-        i++;
+        player = player->next;
+        i = 0;
     }
-
-
 }
 
 //Initialise player positions and trenches
 void init_positions (Player* player)
 {
-    
-/*       while (player) {
-           player->pos.x = (uint8_t) (LEDMAT_ROWS_NUM / 2); //Center of led matrix
-           player->pos.y = (player->next != NULL) ? 0 : LEDMAT_COLS_NUM*2;
+    //Set next and prev to avoid
+    player1.next = &player2;
+    player2.prev = &player1;
 
-           player = player->next;
-       }
 
-       player = player->prev; //Back to player1
-    */
-   player->pos.x = 4;
-   player->pos.y = 3;
-    
+    uint8_t init = 1;
+    while (init) {
+        player->pos.x = ((LEDMAT_COLS_NUM-1) / 2); //Center of led matrix
+        player->pos.y = (player->next != NULL) ? LEDMAT_ROWS_NUM-1 : LEDMAT_COLS_NUM*2;
+
+        player = player->next;
+        init = 0;
+    }
+
+
+    player = player->prev; //Back to player1
+
+    //player->pos.x = 2;
+    //player->pos.y = 6;
+
     uint8_t i = 0;
     uint8_t x_pos = 0;
-    uint8_t y_pos = 1;
+    uint8_t y_pos = 5;
 
     //while (player != NULL) {
 
-        while (i < 14) {
-            if(x_pos > LEDMAT_ROWS_NUM) {
+        while (i < SANDBAG_NUM) {
+            if(x_pos > LEDMAT_COLS_NUM-1) {
                 x_pos = 0;
-                y_pos++;
+                y_pos--;
             }
             player->sandbags[i].pos.x = x_pos;
             player->sandbags[i].pos.y = y_pos;
@@ -214,9 +223,9 @@ void init_positions (Player* player)
             i++;
         }
 
-      //  player = player->next;
+        //player = player->next;
         i = 0;
- //   }
+    //}
 }
 
 
@@ -226,14 +235,14 @@ void init_positions (Player* player)
 static void run_game_task (__unused__ void *data)
 {
     navswitch_update();
-    uint8_t col_type = 0; 
+    uint8_t col_type = 0;
 
     if (navswitch_push_event_p (NAVSWITCH_NORTH)) {
         col_type = sandbag_collision(&player1, UP);
-        (col_type == 0) ? move_up(&player1) : 0;
+        (col_type == 0) ? move_up(&player1, 10) : 0;
     } else if (navswitch_push_event_p (NAVSWITCH_SOUTH)) {
         col_type = sandbag_collision(&player1, DOWN);
-        (col_type == 0) ? move_down(&player1) : 0;
+        (col_type == 0) ? move_down(&player1, 10) : 0;
     } else if (navswitch_push_event_p (NAVSWITCH_WEST)) {
         col_type = sandbag_collision(&player1, LEFT);
         (col_type == 0) ? move_left(&player1) : 0;
@@ -246,7 +255,7 @@ static void run_game_task (__unused__ void *data)
 
     col_type = player_collision_check (&player1);
     col_type ? end_game(&player1) : 0;
-   
+
 }
 
 
@@ -257,20 +266,14 @@ int main(void)
         {.func = run_game_task, .period = TASK_RATE / GAME_TASK_RATE},
     };
 
-
-    //TODO: Initialisation
+    //led_init ();
+    //Initialisation
     system_init ();
     navswitch_init ();
     tinygl_init (DISPLAY_TASK_RATE);
 
-    player1.pos.x = 3;
-    player1.pos.y = 3;
-
-    player1.next = &player2;
-    player2.prev = &player1;
-    
     init_positions(&player1);
-    
+
     task_schedule (tasks, ARRAY_SIZE (tasks));
 
     return 0;

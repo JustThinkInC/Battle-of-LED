@@ -20,9 +20,9 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
     uint8_t y_pos = player->pos.y;
 
     if(move_type == UP) {
-        y_pos++;
-    } else if (move_type == DOWN) {
         y_pos--;
+    } else if (move_type == DOWN) {
+        y_pos++;
     } else if (move_type == LEFT) {
         x_pos--;
     } else if(move_type == RIGHT) {
@@ -39,30 +39,34 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
         } else {
             if (move_type == UP) {
                 //If sandbag above doesn't exist
-                sandbag = hash_contains(sandbag.pos.x, sandbag.pos.y+1);
+                sandbag = hash_contains(sandbag.pos.x, sandbag.pos.y-1);
                 if (sandbag.health > 0 && sandbag.parent == player) {
+                    /*move_up(player);
                     move_up(player);
                     move_up(player);
-
+                    */
+                    move_up(player, 3);
                     return 1;
                 } else {
+                    move_up(player, 2);
+                    /*move_up(player);
                     move_up(player);
-                    move_up(player);
-                    move_up(player);
-
+                    */
                     return 1;
                 }
             } else if (move_type == DOWN) {
-                if(player->pos.y == 2 || player->pos.y == LEDMAT_COLS_NUM - 2) {
+                if(player->pos.y == 3) {// || player->pos.y == LEDMAT_COLS_NUM - 2) {
+                   /* move_down(player);
                     move_down(player);
-                    move_down(player);
-
+                    move_down(player);*/
+                    move_down(player, 3);
                     return 1;
-                } else {
+                } else {/*
                     move_down(player);
                     move_down(player);
                     move_down(player);
-
+                    */
+                    move_down(player, 2);
                     return 1;
                 }
             } else if (move_type == LEFT) {

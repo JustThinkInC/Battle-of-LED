@@ -55,8 +55,12 @@ tinygl.o: ../utils/tinygl.c ../drivers/avr/system.h ../drivers/display.h ../util
 task.o: ../utils/task.c ../drivers/avr/system.h ../drivers/avr/timer.h ../utils/task.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+led.o: ../drivers/led.c ../drivers/avr/pio.h ../drivers/avr/system.h ../drivers/led.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+
 # Link: create output file (executable) from object files.
-pseudo.out: pseudo.o system.o pio.o navswitch.o hashmap.o move.o collision.o timer.o ledmat.o display.o font.o tinygl.o task.o
+pseudo.out: pseudo.o system.o pio.o navswitch.o hashmap.o move.o collision.o timer.o ledmat.o display.o font.o tinygl.o task.o led.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 

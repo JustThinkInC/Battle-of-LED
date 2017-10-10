@@ -10,9 +10,9 @@
 #ifndef MOVE_H
 #define MOVE_H
 
-void move_up(Player* player);
+void move_up(Player* player, uint8_t by_y);
 
-void move_down(Player* player);
+void move_down(Player* player, uint8_t by_y);
 
 void move_left(Player* player);
 

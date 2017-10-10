@@ -8,34 +8,49 @@
 
 //Movement functions look like the should be modular (imo).
 //Refer to the image if confused about how the coord system works here
-void move_up(Player* player)
+void move_up(Player* player, uint8_t by_y)
 {
-    if(player->next != NULL) {
-       if (player->pos.y < LEDMAT_COLS_NUM) { 
-           player->old = player->pos;
-           player->pos.y++;
-      }
+    if (by_y < 10) {
+        if (player->pos.y - by_y >= 0) {
+            player->old = player->pos;
+            player->pos.y -= by_y;
+        }
     } else {
-       if (player->pos.y > 0) {
-           player->old = player->pos;
-           player->pos.y--;
+        if(player->next != NULL) {
+            if (player->pos.y > 0) {
+                player->old = player->pos;
+                player->pos.y--;
+            }
+        } else {
+            if (player->pos.y > 0) {
+                player->old = player->pos;
+                player->pos.y--;
+            }
         }
     }
 }
 
-void move_down(Player* player)
+void move_down(Player* player, uint8_t by_y)
 {
-    //Check if player1 or player2
-    if(player->next != NULL) {
-       if (player->pos.y > 0) {
-           player->old = player->pos;
-           player->pos.y--;
-        }
+    if (by_y < 10) {
+        if (player->pos.y + by_y < 7 ) {
+                player->old = player->pos;
+                player->pos.y += by_y;
+            }
     } else {
-        if (player->pos.y < LEDMAT_COLS_NUM) { 
-           player->old = player->pos;
-           player->pos.y++;
-      }
+        //Check if player1 or player2
+        if(player->next != NULL) {
+            if (player->pos.y < 6 ) {
+                player->old = player->pos;
+                player->pos.y++;
+            }
+            //Need to fix this one
+        } else {
+            if (player->pos.y < LEDMAT_COLS_NUM) {
+                player->old = player->pos;
+                player->pos.y++;
+            }
+        }
     }
 }
 
@@ -51,7 +66,7 @@ void move_left(Player* player)
 void move_right(Player* player)
 {
     //Check player is not at right edge of led matrix
-    if (player->pos.x < LEDMAT_ROWS_NUM) {
+    if (player->pos.x < LEDMAT_COLS_NUM-1) {
         player->old = player->pos;
         player->pos.x++;
     }

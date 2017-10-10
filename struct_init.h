@@ -9,6 +9,7 @@
 #ifndef STRUCT_INIT_H
 #define STRUCT_INIT_H
 #define SANDBAG_HEALTH 2
+#define SANDBAG_NUM LEDMAT_COLS_NUM * 2
 typedef struct sandbag_s SandBag;
 typedef struct bullet_s Bullet;
 typedef struct player_s Player;
@@ -24,8 +25,7 @@ struct player_s {
     tinygl_point_t old;
     Player* next;
     Player* prev;
-    //Rows since we have board rotated
-    SandBag sandbags[LEDMAT_ROWS_NUM * 2];
+    SandBag sandbags[SANDBAG_NUM];
 };
 
 struct bullet_s {
