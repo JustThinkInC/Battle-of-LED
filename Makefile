@@ -16,7 +16,7 @@ all: pseudo.out
 
 
 # Compile: create object files from C source files.
-pseudo.o: pseudo.c ../drivers/avr/system.h ../drivers/avr/pio.h ../drivers/navswitch.h struct_init.h hashmap.h move.h collision.h
+pseudo.o: pseudo.c ../drivers/avr/system.h ../drivers/avr/pio.h ../drivers/navswitch.h struct_init.h hashmap.h move.h collision.h ../utils/tinygl.h ../utils/font.h ../utils/task.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 system.o: ../drivers/avr/system.c ../drivers/avr/system.h
@@ -37,8 +37,26 @@ move.o: move.c move.h ../drivers/avr/pio.h struct_init.h
 collision.o: collision.c collision.h hashmap.h move.h struct_init.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+timer.o: ../drivers/avr/timer.c ../drivers/avr/system.h ../drivers/avr/timer.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+ledmat.o: ../drivers/ledmat.c ../drivers/avr/pio.h ../drivers/avr/system.h ../drivers/ledmat.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+display.o: ../drivers/display.c ../drivers/avr/system.h ../drivers/display.h ../drivers/ledmat.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+font.o: ../utils/font.c ../drivers/avr/system.h ../utils/font.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+tinygl.o: ../utils/tinygl.c ../drivers/avr/system.h ../drivers/display.h ../utils/font.h ../utils/tinygl.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+task.o: ../utils/task.c ../drivers/avr/system.h ../drivers/avr/timer.h ../utils/task.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
 # Link: create output file (executable) from object files.
-pseudo.out: pseudo.o system.o pio.o navswitch.o hashmap.o move.o collision.o  
+pseudo.out: pseudo.o system.o pio.o navswitch.o hashmap.o move.o collision.o timer.o ledmat.o display.o font.o tinygl.o task.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 

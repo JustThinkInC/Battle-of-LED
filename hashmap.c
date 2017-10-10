@@ -24,33 +24,31 @@ SandBag hash_table[LEDMAT_ROWS_NUM * TRENCH_DEPTH * 4 + 1];
  arbitrarily chosen number then computes the result modulo hash table size*/
 uint8_t hash(uint8_t x, uint8_t y)
 {
-    /*This formula gives different hashes for our scenario,
-    The 'magic' numbers here are arbitrary, other numbers can be used
-    */
+    //This formula gives different hashes for our scenario,
     uint8_t number = ((x*3 + y*4) << 3) % hash_table_size;
 
     return number;
 }
 
-//Add sandbag to hashtable
+//Add sandbag to hashtable, note that no other game objects may be stored
 void hash_add(SandBag sandbag)
 {
-    uint8_t hash_slot = hash(sandbag.x, sandbag.y);
+    uint8_t hash_slot = hash(sandbag.pos.x, sandbag.pos.y);
     hash_table[hash_slot] = sandbag;
 }
 
-//Check whether the hash table contains a sandbag at current players coord.
-//Returns dud sandbag if no sandbag at player's coord
+//Check whether the hash table contains a sandbag at a given game object's coord.
+//Returns 'dud' sandbag if no sandbag at player's coord
 SandBag hash_contains(uint8_t x, uint8_t y)
 {
     uint8_t hash_slot = hash(x, y);
     SandBag sandbag = hash_table[hash_slot];
     SandBag dud;
-    dud.x = 0;
-    dud.y = 0;
+    dud.pos.x = 0;
+    dud.pos.y = 0;
     dud.health = 0;
 
-    if (sandbag.x == x && sandbag.y == y && sandbag.health > 0) {
+    if (sandbag.pos.x == x && sandbag.pos.y == y && sandbag.health > 0) {
         return sandbag;
     }
 

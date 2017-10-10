@@ -4,6 +4,7 @@
 */
 
 #include "pio.h"
+#include "tinygl.h"
 
 #ifndef STRUCT_INIT_H
 #define STRUCT_INIT_H
@@ -14,14 +15,14 @@ typedef struct player_s Player;
 
 struct sandbag_s {
     uint8_t health;
-    uint8_t x;
-    uint8_t y;
+    tinygl_point_t pos;
+    tinygl_point_t old;
     Player* parent;
 };
 
 struct player_s {
-    uint8_t x;
-    uint8_t y;
+    tinygl_point_t pos;
+    tinygl_point_t old;
     Player* next;
     Player* prev;
     //Rows since we have board rotated
@@ -29,8 +30,8 @@ struct player_s {
 };
 
 struct bullet_s {
-    uint8_t x;
-    uint8_t y;
+    tinygl_point_t pos;
+    tinygl_point_t old;
     Player* target;
 };
 

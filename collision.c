@@ -16,8 +16,8 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
 {
     /*Create a dummy variable to hold the player's new positions if
      desire movemet were to occur. */
-    uint8_t x_pos = player->x;
-    uint8_t y_pos = player->y;
+    uint8_t x_pos = player->pos.x;
+    uint8_t y_pos = player->pos.y;
 
     if(move_type == UP) {
         y_pos++;
@@ -39,7 +39,7 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
         } else {
             if (move_type == UP) {
                 //If sandbag above doesn't exist
-                sandbag = hash_contains(sandbag.x, sandbag.y+1);
+                sandbag = hash_contains(sandbag.pos.x, sandbag.pos.y+1);
                 if (sandbag.health > 0 && sandbag.parent == player) {
                     move_up(player);
                     move_up(player);
@@ -53,7 +53,7 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
                     return 1;
                 }
             } else if (move_type == DOWN) {
-                if(player->y == 2 || player->y == LEDMAT_COLS_NUM - 2) {
+                if(player->pos.y == 2 || player->pos.y == LEDMAT_COLS_NUM - 2) {
                     move_down(player);
                     move_down(player);
 
@@ -66,14 +66,14 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
                     return 1;
                 }
             } else if (move_type == LEFT) {
-                if (player->sandbags[sandbag.x-1].health == 0) {
-                    if (player->sandbags[sandbag.x-1].y == y_pos) {
+                if (player->sandbags[sandbag.pos.x-1].health == 0) {
+                    if (player->sandbags[sandbag.pos.x-1].pos.y == y_pos) {
                         move_left (player);
                     }
                 }
             } else if (move_type == RIGHT) {
-                if (player->sandbags[sandbag.x+1].health == 0) {
-                    if (player->sandbags[sandbag.x+1].y == y_pos) {
+                if (player->sandbags[sandbag.pos.x+1].health == 0) {
+                    if (player->sandbags[sandbag.pos.x+1].pos.y == y_pos) {
                         move_right (player);
                     }
                 }
@@ -87,17 +87,17 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
 //This function checks for collision between player and opponent
 uint8_t player_collision_check (Player* player)
 {
-    uint8_t x_pos = player->x;
-    uint8_t y_pos = player->y;
+    uint8_t x_pos = player->pos.x;
+    uint8_t y_pos = player->pos.y;
 
     //Check if players on same coord (collision)
     if(player->next != NULL) {
-        if (x_pos == player->next->x && y_pos == player->next->y) {
+        if (x_pos == player->next->pos.x && y_pos == player->next->pos.y) {
             //christmas_truce();
             return 1;
         }
     } else {
-        if (x_pos == player->prev->x && y_pos == player->prev->y) {
+        if (x_pos == player->prev->pos.x && y_pos == player->prev->pos.y) {
             // christmas_truce();
 
         }

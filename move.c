@@ -11,9 +11,15 @@
 void move_up(Player* player)
 {
     if(player->next != NULL) {
-        player->y < LEDMAT_COLS_NUM ? player->y++ : 0;
+       if (player->pos.y < LEDMAT_COLS_NUM) { 
+           player->old = player->pos;
+           player->pos.y++;
+      }
     } else {
-        player->y > 0 ? player->y-- : 0;
+       if (player->pos.y > 0) {
+           player->old = player->pos;
+           player->pos.y--;
+        }
     }
 }
 
@@ -21,20 +27,32 @@ void move_down(Player* player)
 {
     //Check if player1 or player2
     if(player->next != NULL) {
-        player->y > 0 ? player->y--:0;
+       if (player->pos.y > 0) {
+           player->old = player->pos;
+           player->pos.y--;
+        }
     } else {
-        player->y < LEDMAT_COLS_NUM ? player->y++:0;
+        if (player->pos.y < LEDMAT_COLS_NUM) { 
+           player->old = player->pos;
+           player->pos.y++;
+      }
     }
 }
 
 void move_left(Player* player)
 {
     //Check player is not at left edge of led matrix
-    player->x > 0 ? player->x--:0;
+    if (player->pos.x > 0) {
+        player->old = player->pos;
+        player->pos.x--;
+    }
 }
 
 void move_right(Player* player)
 {
     //Check player is not at right edge of led matrix
-    player->x < LEDMAT_ROWS_NUM ? player->x++:0;
+    if (player->pos.x < LEDMAT_ROWS_NUM) {
+        player->old = player->pos;
+        player->pos.x++;
+    }
 }
