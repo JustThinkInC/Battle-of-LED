@@ -16,7 +16,6 @@ typedef struct player_s Player;
 struct sandbag_s {
     uint8_t health;
     tinygl_point_t pos;
-    tinygl_point_t old;
     Player* parent;
 };
 
@@ -34,6 +33,4 @@ struct bullet_s {
     tinygl_point_t old;
     Player* target;
 };
-
-
 #endif

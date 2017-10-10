@@ -66,7 +66,7 @@
 #define RIGHT 4
 
 //14 target sandbags with 2 health = 28 bullets + 28 for enemy = 56 bullets
-#define MAX_NUM_BULLETS 2
+#define MAX_NUM_BULLETS 31
 
 Bullet bulletPool[MAX_NUM_BULLETS]; //The bullet pool
 uint8_t firstFree = 0;
@@ -147,7 +147,8 @@ static void shoot (Player* player)
             bullet = NULL;
             //end_game();
         } else {
-            //(bullet->y >= LEDMAT_ROWS_NUM || bullet->y <= 0) ? delete(bullet) : 0;
+            
+            (bullet->pos.y >= LEDMAT_ROWS_NUM || bullet->pos.y <= 0) ? bullet = NULL : 0;
         }
     }
 }
@@ -157,7 +158,6 @@ static void display_task (__unused__ void *data)
 {
     tinygl_update ();
 
-    tinygl_text_dir_set (TINYGL_TEXT_DIR_ROTATE);
     tinygl_draw_point (player1.old, 0);
     tinygl_draw_point (player1.pos, 1);
     
@@ -167,7 +167,10 @@ static void display_task (__unused__ void *data)
         SandBag sandbag = player1.sandbags[i];
        
         if (sandbag.health > 0) {
-            tinygl_draw_point (sandbag.pos, 1);
+            SandBag dummy = sandbag;
+            dummy.pos.x = 6 - sandbag.pos.x;
+            dummy.pos.y = 4 - sandbag.pos.y;
+            tinygl_draw_point (dummy.pos, 1);
         }
         i++;
     }
