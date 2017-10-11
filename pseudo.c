@@ -13,7 +13,7 @@
 #include "move.h"
 #include "collision.h"
 
-//(Thoe Harbed's header files
+//Theo Harber's header files
 
 
 
