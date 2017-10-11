@@ -9,10 +9,7 @@
 
 #define PIEZO1_PIO PIO_DEFINE (PORT_D, 4)
 #define PIEZO2_PIO PIO_DEFINE (PORT_D, 6)
-#define TEST_PIO PIO_DEFINE (PORT_D, 3)
 
-#define TONE_FREQUENCY 440
-#define LOOP_RATE 10000
 
 static void display_task (__unused__ void *data)
 {
