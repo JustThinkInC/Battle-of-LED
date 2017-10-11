@@ -11,8 +11,6 @@
 
 #ifndef HASHMAP_H
 #define HASHMAP_H
-//Trench and sandbag related values
-#define TRENCH_DEPTH 2
 
 uint8_t hash(uint8_t x, uint8_t y);
 

@@ -38,7 +38,7 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
             return 2;
         } else {
             if (move_type == UP) {
-                //If sandbag above doesn't exist
+                //If sandbag above does exist
                 sandbag = hash_contains(sandbag.pos.x, sandbag.pos.y-1);
                 if (sandbag.health > 0 && sandbag.parent == player) {
                     /*move_up(player);
