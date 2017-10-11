@@ -7,11 +7,14 @@
 #include "navswitch.h"
 #include "led.h"
 
-//My (George Khella) header files
+//George Khella's header files
 #include "struct_init.h"
 #include "hashmap.h"
 #include "move.h"
 #include "collision.h"
+
+//(Thoe Harbed's header files
+
 
 
 /* ISSUES/CONCERNS:
@@ -22,9 +25,6 @@
 /* TODO:
  * IR recieve&send
  * Check wich board is P1
- * Christmas truce
- * Game over
- * UI Selection
  * Sound
  */
 
@@ -36,19 +36,8 @@
 #define DISPLAY_TASK_RATE 250
 #define GAME_TASK_RATE 100
 
-//Movement types and values
-#define UP 1
-#define DOWN 2
-#define LEFT 3
-#define RIGHT 4
-
-//10 target sandbags with 2 health = 20 bullets + 10 for enemy = 30 bullets
-#define MAX_NUM_BULLETS 30
-
-
 Bullet bulletPool[MAX_NUM_BULLETS]; //The bullet pool
 uint8_t firstFree = 0; //First free slot in the bullet pool
-
 
 static bool state = 0; //If bullet hits something
 static bool game_over = 0; //If game over
@@ -61,7 +50,7 @@ Player player2;
 
 
 //Name I can think of is "Battle of LED", if you have another name tell me!
-const char* start_msg = "BATTLE OF LED 1914";
+static const char* start_msg = "BATTLE OF LED 1914";
 
 
 //This function displays a given message by tinygl
@@ -84,14 +73,12 @@ void display_menu (const char* p1_msg, const char* p2_msg)
 
 
 //This function draws all game objects (player, sandbags, bullets)
-void draw(void)
+void draw(Player* player)
 {
     tinygl_clear();
     if (!game_over && !show_menu) {
-        tinygl_draw_point (player1.pos, 1);
-        tinygl_draw_point (player2.pos, 1);
-
-        Player* player = &player1;
+        tinygl_draw_point (player->pos, 1);
+        tinygl_draw_point (player->next->pos, 1);
 
         while (player != NULL) {
             uint8_t i = 0;
@@ -191,7 +178,7 @@ static void shoot (Player* player)
     while(bullet != NULL) {
         player->next != NULL ? bullet->pos.y-- : bullet->pos.y--;
         SandBag sandbag = hash_contains(bullet->pos.x, bullet->pos.y);
-        draw();
+        draw(&player1);
 
         if (sandbag.health > 0 && sandbag.parent == target) {
             sandbag.health--;
@@ -255,7 +242,7 @@ void init_positions (Player* player)
     //player = player->next;
     i = 0;
     //}
-    draw();
+    draw(&player1);
 }
 
 
@@ -270,29 +257,29 @@ static void run_game_task (__unused__ void *data)
     if (show_menu && navswitch_push_event_p (NAVSWITCH_PUSH)) {
         show_menu = 0;
         game_over = 0;
-        draw();
+        draw(&player1);
     } else if (game_over && navswitch_push_event_p (NAVSWITCH_PUSH)) {
         init_positions (&player1);
         game_over = 0;
         show_menu = 1;
         display_menu(start_msg,start_msg);
-    } else if (!game_over ) {
+    } else if (!game_over && !show_menu) {
         if (navswitch_push_event_p (NAVSWITCH_NORTH)) {
             col_type = sandbag_collision(&player1, UP);
             (col_type == 0) ? move_up(&player1, 10) : 0;
-            draw();
+            draw(&player1);
         } else if (navswitch_push_event_p (NAVSWITCH_SOUTH)) {
             col_type = sandbag_collision(&player1, DOWN);
             (col_type == 0) ? move_down(&player1, 10) : 0;
-            draw();
+            draw(&player1);
         } else if (navswitch_push_event_p (NAVSWITCH_WEST)) {
             col_type = sandbag_collision(&player1, LEFT);
             (col_type == 0) ? move_left(&player1) : 0;
-            draw();
+            draw(&player1);
         } else if (navswitch_push_event_p (NAVSWITCH_EAST)) {
             col_type = sandbag_collision(&player1, RIGHT);
             (col_type == 0) ? move_right(&player1) : 0;
-            draw();
+            draw(&player1);
         } else if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
             shoot(&player1);
         }

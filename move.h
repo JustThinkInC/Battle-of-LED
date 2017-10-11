@@ -10,9 +10,16 @@
 #ifndef MOVE_H
 #define MOVE_H
 
-void move_up(Player* player, uint8_t by_y);
 
-void move_down(Player* player, uint8_t by_y);
+//Movement types and values
+#define UP 1
+#define DOWN 2
+#define LEFT 3
+#define RIGHT 4
+
+void move_up(Player* player, uint8_t y_change);
+
+void move_down(Player* player, uint8_t y_change);
 
 void move_left(Player* player);
 

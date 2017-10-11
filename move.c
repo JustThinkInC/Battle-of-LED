@@ -8,11 +8,11 @@
 
 //Movement functions look like the should be modular (imo).
 //Refer to the image if confused about how the coord system works here
-void move_up(Player* player, uint8_t by_y)
+void move_up(Player* player, uint8_t y_change)
 {
-    if (by_y < 10) {
-        if (player->pos.y - by_y >= 0) {
-            player->pos.y -= by_y;
+    if (y_change < 10) {
+        if (player->pos.y - y_change >= 0) {
+            player->pos.y -= y_change;
         }
     } else {
         if(player->next != NULL) {
@@ -27,11 +27,11 @@ void move_up(Player* player, uint8_t by_y)
     }
 }
 
-void move_down(Player* player, uint8_t by_y)
+void move_down(Player* player, uint8_t y_change)
 {
-    if (by_y < 10) {
-        if (player->pos.y + by_y < 7 ) {
-                player->pos.y += by_y;
+    if (y_change < 10) {
+        if (player->pos.y + y_change < 7 ) {
+                player->pos.y += y_change;
             }
     } else {
         //Check if player1 or player2

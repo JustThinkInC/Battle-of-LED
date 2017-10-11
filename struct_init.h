@@ -10,9 +10,13 @@
 #define STRUCT_INIT_H
 #define SANDBAG_HEALTH 2
 #define SANDBAG_NUM LEDMAT_COLS_NUM 
+//10 target sandbags with 2 health = 20 bullets + 10 for enemy = 30 bullets
+#define MAX_NUM_BULLETS 30
+
 typedef struct sandbag_s SandBag;
 typedef struct bullet_s Bullet;
 typedef struct player_s Player;
+
 
 struct sandbag_s {
     uint8_t health;
