@@ -120,7 +120,7 @@ void end_game(Player* player)
         display_msg("VICTORY :)" , "DEFEAT :(");
 
     } else {
-        displaymsg("DEFEAT :(", "VICTORY :)");
+        display_msg("DEFEAT :(", "VICTORY :)");
     }
     /*
     wait like 5 seconds then bring back to main menu;
