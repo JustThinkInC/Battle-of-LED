@@ -97,13 +97,11 @@ uint8_t player_collision_check (Player* player)
     //Check if players on same coord (collision)
     if(player->next != NULL) {
         if (x_pos == player->next->pos.x && y_pos == player->next->pos.y) {
-            //christmas_truce();
             return 1;
         }
     } else {
         if (x_pos == player->prev->pos.x && y_pos == player->prev->pos.y) {
-            // christmas_truce();
-
+            return 1;
         }
     }
 
