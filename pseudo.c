@@ -45,26 +45,33 @@
 //10 target sandbags with 2 health = 20 bullets + 10 for enemy = 30 bullets
 #define MAX_NUM_BULLETS 30
 
+
 Bullet bulletPool[MAX_NUM_BULLETS]; //The bullet pool
 uint8_t firstFree = 0; //First free slot in the bullet pool
 
-bool state = 0; //If bullet hits something
-bool game_over = 0; //If game over
+
+static bool state = 0; //If bullet hits something
+static bool game_over = 0; //If game over
+bool show_menu = 1;
+
 
 //Create the players, we probably need to find another way to do this...
 Player player1;
 Player player2;
 
 
+//Name I can think of is "Battle of LED", if you have another name tell me!
+const char* start_msg = "BATTLE OF LED 1914";
+
+
 //This function displays a given message by tinygl
-void display_msg (const char* p1_msg, const char* p2_msg)
+void display_menu (const char* p1_msg, const char* p2_msg)
 {
     //TODO: When we have IR:
     // p1_ir_send("p2_msg");
 
     tinygl_clear();
-   
-    if(p1_msg == p2_msg) {
+    if(show_menu || game_over) {
         tinygl_text(p1_msg);
     } else {
         tinygl_point_t pos;
@@ -80,7 +87,7 @@ void display_msg (const char* p1_msg, const char* p2_msg)
 void draw(void)
 {
     tinygl_clear();
-    if (!game_over) {
+    if (!game_over && !show_menu) {
         tinygl_draw_point (player1.pos, 1);
         tinygl_draw_point (player2.pos, 1);
 
@@ -117,14 +124,16 @@ void end_game(Player* player)
     //TODO: End game
     if (player->next != NULL) {
         game_over = 1;
-        display_msg("VICTORY :)" , "DEFEAT :(");
+        display_menu("VICTORY :)" , "DEFEAT :(");
 
     } else {
-        display_msg("DEFEAT :(", "VICTORY :)");
+        display_menu("DEFEAT :(", "VICTORY :)");
     }
     /*
     wait like 5 seconds then bring back to main menu;
     maybe play a tune for each player depending on the outcome
+    --->Currently, I'm just making it so user has to click to get back to menu
+    ----->this is posisbly better in case user missed the message?
     */
 
 }
@@ -139,7 +148,7 @@ void christmas_truce(void)
     // back to menu after melody ends;
     game_over = 1;
     const char* msg = "CHRISTMAS TRUCE, 1914";
-    display_msg(msg, msg);
+    display_menu(msg, msg);
 }
 
 
@@ -256,10 +265,18 @@ void init_positions (Player* player)
 static void run_game_task (__unused__ void *data)
 {
     uint8_t col_type = 0;
+    navswitch_update();
     //If game over, we don't read input from navswitch
-
-    if (!game_over ) {
-        navswitch_update();
+    if (show_menu && navswitch_push_event_p (NAVSWITCH_PUSH)) {
+        show_menu = 0;
+        game_over = 0;
+        draw();
+    } else if (game_over && navswitch_push_event_p (NAVSWITCH_PUSH)) {
+        init_positions (&player1);
+        game_over = 0;
+        show_menu = 1;
+        display_menu(start_msg,start_msg);
+    } else if (!game_over ) {
         if (navswitch_push_event_p (NAVSWITCH_NORTH)) {
             col_type = sandbag_collision(&player1, UP);
             (col_type == 0) ? move_up(&player1, 10) : 0;
@@ -302,7 +319,11 @@ int main(void)
     tinygl_text_speed_set (10);
     tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);
     init_positions(&player1);
+
+    display_menu(start_msg, start_msg);
+
     task_schedule (tasks, ARRAY_SIZE (tasks));
+
 
     return 0;
 }
