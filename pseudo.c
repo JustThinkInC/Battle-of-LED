@@ -235,8 +235,10 @@ static void ir_recieve_task (__unused__ void *data) {
         col_type = sandbag_collision(&player2, LEFT);
         (col_type == 0) ? move_left(&player2) : 0;
         draw (&player1);
+        break;
     case 'T':
         christmas_truce();
+        break;
     //Recieve v means lost, send v means won
     case 'V':
         end_game(&player2);
