@@ -6,6 +6,7 @@
 #include "../fonts/font3x5_1.h"
 #include "navswitch.h"
 #include "led.h"
+#include "ir_uart.h"
 
 //George Khella's header files
 #include "struct_init.h"
@@ -76,6 +77,22 @@ void display_menu (const char* p1_msg, const char* p2_msg)
 void draw(Player* player)
 {
     tinygl_clear();
+    ir_uart_read_ready_p();
+    char move = ir_uart_getc();
+    switch (move) {
+        case "U":
+            col_type = sandbag_collision(&player2, UP);
+            (col_type == 0) ? move_up(&player2, 10) : 0;
+        case "D":
+           col_type = sandbag_collision(&player2, DOWN);
+            (col_type == 0) ? move_down(&player2, 10) : 0;
+        case "R":
+           col_type = sandbag_collision(&player2, RIGHT);
+            (col_type == 0) ? move_right(&player2, 10) : 0;
+        case "L":
+            col_type = sandbag_collision(&player2, LEFT);
+            (col_type == 0) ? move_left(&player2, 10) : 0;
+    }
     if (!game_over && !show_menu) {
         tinygl_draw_point (player->pos, 1);
         tinygl_draw_point (player->next->pos, 1);
@@ -256,42 +273,48 @@ void init_positions (Player* player)
 }
 
 
-//Checks for game events (e.g. movement) and calls neccessary
-//functions to handle them
-//void run_game(Player* player)
+/*Checks for game events (e.g. movement) and calls neccessary
+functions to handle them
+Note that movements appear to be inverse of what they are to different players
+hence the inversion when sending via IR.
+*/
 static void run_game_task (__unused__ void *data)
-{    
+{
     uint8_t col_type = 0;
     navswitch_update();
-    
+
     if (show_menu && navswitch_push_event_p (NAVSWITCH_PUSH)) {
         show_menu = 0;
         game_over = 0;
         draw(&player1);
-        
+
     } else if (game_over && navswitch_push_event_p (NAVSWITCH_PUSH)) {
         init_positions (&player1);
         game_over = 0;
         show_menu = 1;
         display_menu(start_msg,start_msg);
-        
+
     } else if (!game_over && !show_menu) {
         if (navswitch_push_event_p (NAVSWITCH_NORTH)) {
             col_type = sandbag_collision(&player1, UP);
             (col_type == 0) ? move_up(&player1, 10) : 0;
             draw(&player1);
+            ir_uart_putc("D");
         } else if (navswitch_push_event_p (NAVSWITCH_SOUTH)) {
             col_type = sandbag_collision(&player1, DOWN);
             (col_type == 0) ? move_down(&player1, 10) : 0;
             draw(&player1);
+            ir_uart_putc("U");
         } else if (navswitch_push_event_p (NAVSWITCH_WEST)) {
             col_type = sandbag_collision(&player1, LEFT);
             (col_type == 0) ? move_left(&player1) : 0;
             draw(&player1);
+            ir_uart_putc("R");
         } else if (navswitch_push_event_p (NAVSWITCH_EAST)) {
             col_type = sandbag_collision(&player1, RIGHT);
             (col_type == 0) ? move_right(&player1) : 0;
             draw(&player1);
+            ir_uart_putc("L");
         } else if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
             shoot(&player1);
         }
@@ -320,11 +343,12 @@ int main(void)
     tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);
     tinygl_text_dir_set(TINYGL_TEXT_DIR_ROTATE);
     init_positions(&player1);
+    ir_uart_init();
 
     display_menu(start_msg, start_msg);
 
     task_schedule (tasks, ARRAY_SIZE (tasks));
-    
+
 
     return 0;
 }
