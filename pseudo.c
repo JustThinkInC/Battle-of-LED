@@ -72,33 +72,10 @@ void display_menu (const char* p1_msg, const char* p2_msg)
     tinygl_update();
 }
 
-
 //This function draws all game objects (player, sandbags, bullets)
 void draw(Player* player)
 {
     tinygl_clear();
-    uint8_t col_type = 0;
-    char move = '0';
-    if (ir_uart_read_ready_p()) {
-        move = ir_uart_getc();
-    }
-    switch (move) {
-    case 'U':
-        col_type = sandbag_collision(&player2, UP);
-        (col_type == 0) ? move_up(&player2, 10) : 0;
-        break;
-    case 'D':
-        col_type = sandbag_collision(&player2, DOWN);
-        (col_type == 0) ? move_down(&player2, 10) : 0;
-        break;
-    case 'R':
-        col_type = sandbag_collision(&player2, RIGHT);
-        (col_type == 0) ? move_right(&player2) : 0;
-        break;
-    case 'L':
-        col_type = sandbag_collision(&player2, LEFT);
-        (col_type == 0) ? move_left(&player2) : 0;
-    }
     if (!game_over && !show_menu) {
         tinygl_draw_point (player->pos, 1);
         tinygl_draw_point (player->next->pos, 1);
@@ -232,6 +209,34 @@ static void display_task (__unused__ void *data)
     tinygl_update();
 }
 
+static void ir_recieve_task (__unused__ void *data) {
+    uint8_t col_type = 0;
+    char move = '0';
+    if (ir_uart_read_ready_p()) {
+        move = ir_uart_getc();
+    }
+    switch (move) {
+    case 'U':
+        col_type = sandbag_collision(&player2, UP);
+        (col_type == 0) ? move_up(&player2, 10) : 0;
+        draw (&player1);
+        break;
+    case 'D':
+        col_type = sandbag_collision(&player2, DOWN);
+        (col_type == 0) ? move_down(&player2, 10) : 0;
+        draw (&player1);
+        break;
+    case 'R':
+        col_type = sandbag_collision(&player2, RIGHT);
+        (col_type == 0) ? move_right(&player2) : 0;
+        draw (&player1);
+        break;
+    case 'L':
+        col_type = sandbag_collision(&player2, LEFT);
+        (col_type == 0) ? move_left(&player2) : 0;
+        draw (&player1);
+    }
+}
 
 //Initialise player and sandbag positions
 void init_positions (Player* player)
@@ -338,6 +343,7 @@ int main(void)
     task_t tasks[] = {
         {.func = display_task, .period = TASK_RATE / DISPLAY_TASK_RATE},
         {.func = run_game_task, .period = TASK_RATE / GAME_TASK_RATE},
+        {.func = ir_recieve_task, .period = TASK_RATE / GAME_TASK_RATE},
     };
 
     //Initialisation
