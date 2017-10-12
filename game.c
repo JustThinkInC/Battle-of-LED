@@ -360,7 +360,7 @@ int main(void)
     init_positions(&player1);
     
     //Show the title screen to the player
-    display_menu(start_msg, start_msg);
+    display_menu(start_msg);
 
     task_schedule (tasks, ARRAY_SIZE (tasks));
 
