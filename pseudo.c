@@ -24,8 +24,8 @@
 */
 
 /* TODO:
- * IR recieve&send
- * Check wich board is P1
+ * Fix sandbag collision
+ * Fix defeat text
  * Sound
  */
 
@@ -34,7 +34,7 @@
 
 //Polling rate of tasks in Hz
 //Values may need adjustmenst after testing.
-#define DISPLAY_TASK_RATE 250
+#define DISPLAY_TASK_RATE 300
 #define GAME_TASK_RATE 100
 
 Bullet bulletPool[MAX_NUM_BULLETS]; //The bullet pool
@@ -286,6 +286,10 @@ void init_positions (Player* player)
         player = player->next;
         i = 0;
     }
+    player = &player1;
+    player->sandbags[4].health = 0;
+   //player->sandbags[1].health = 0;
+    player->sandbags[2].health = 0;
     
     draw(&player1);
     tinygl_update();
