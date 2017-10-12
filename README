@@ -1,16 +1,23 @@
-Use this directory for your final game and its module(s).  Only the
-files in this directory will be marked.
+BATTLE OF LED, 1914
+--George K & Theo Harbers
 
-Ensure you use the git add command to add your files to the git
-repository.  For example,
+For compiling and running on a Linux machine do the following steps:
+1) Compile the game, this will produce .hex, .o, and .bin files:
+    make
+2) Compile and run the game on the avr:
+    make program
 
-git add module.c
 
-Then use the git commit command to add the file contents
-
-git commit -m "Added file" module.c
-
-The use the git push command to copy the changes to the remote git server
-
-git push
-
+Playing the game:
+1) Scrolling title text will appear, simply push down the joystick to start the 
+   game.
+2) Every player has a trench and 30 bullets (more than enough!), every sandbag
+   has 2 hit points (HP), each bullet deals 1 damage HP. Every player has only
+   1 HP. Objective is to capture opponent's trench or take them down.
+3) Move by pushing the joystick in the desired direction.
+4) Push to shoot
+5) When game is over, scrolling text will notify you of the outcome, 
+   push joystick to return to the menu.
+6) There is an "Easter" egg, find it! Tis probably the best outcome (hint hint)
+   Reading the code to find the Easter egg does not mean you've found it :)
+   
