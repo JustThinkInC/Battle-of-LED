@@ -30,37 +30,40 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
         break;
     case LEFT:
         x_pos--;
-        x_pos < 0 ? x_pos = 0 : 0;
         break;
     case RIGHT:
         x_pos++;
     }
 
+    /*This allows us to complete collision detection faster since
+     there won't be a sandbag in non-trench rows*/
     if(y_pos != def_line[0] && y_pos != def_line[1]) {
         return 0;
     }
 
     //Collision detection O(1) way...
     SandBag sandbag_temp = hash_contains(x_pos, y_pos);
-    SandBag sandbag = sandbag_temp.parent->sandbags[sandbag_temp.slot];
+    SandBag sandbag = sandbag_temp.parent->sandbags[sandbag_temp.pos.x];
+    
     if (sandbag.health <= 0) {
         return 0;
     } else if (sandbag.parent != player) {
         return 1;
-    } else if(sandbag.parent == player) {
+    } else {
         if (move_type == UP) {
             move_up(player, 2);
-            return 1;
         } else if (move_type == DOWN) {
-            if(y_pos == def_line[0]) {
-                move_down(player, 2);
-                return 1;
+            move_down(player, 2);
+        } else if (move_type == LEFT || move_type == RIGHT) {
+            if(player->sandbags[x_pos].health <= 0) {
+                return 0;
             }
         }
+        return 1;
     }
 
 
-    return 1;
+    return 0;
 }
 
 //This function checks for collision between player and opponent

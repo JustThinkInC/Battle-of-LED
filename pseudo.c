@@ -286,10 +286,6 @@ void init_positions (Player* player)
         player = player->next;
         i = 0;
     }
-    player = &player1;
-    player->sandbags[4].health = 0;
-   //player->sandbags[1].health = 0;
-    player->sandbags[2].health = 0;
     
     draw(&player1);
     tinygl_update();
