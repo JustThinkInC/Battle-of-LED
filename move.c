@@ -10,20 +10,8 @@
 //Refer to the image if confused about how the coord system works here
 void move_up(Player* player, uint8_t y_change)
 {
-    if (y_change < 10) {
-        if (player->pos.y - y_change >= 0) {
-            player->pos.y -= y_change;
-        }
-    } else {
-        if(player->next != NULL) {
-            if (player->pos.y > 0) {
-                player->pos.y--;
-            }
-        } else {
-            if (player->pos.y > 0) {
-                player->pos.y--;
-            }
-        }
+    if (player->pos.y - y_change >= 0) {
+        player->pos.y -= y_change;
     }
 }
 
@@ -31,8 +19,8 @@ void move_down(Player* player, uint8_t y_change)
 {
     if (y_change < 10) {
         if (player->pos.y + y_change < 7 ) {
-                player->pos.y += y_change;
-            }
+            player->pos.y += y_change;
+        }
     } else {
         //Check if player1 or player2
         if(player->next != NULL) {
