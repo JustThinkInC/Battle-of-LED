@@ -24,13 +24,17 @@
 */
 
 /* TODO:
- * Fix sandbag collision
  * Fix defeat text
  * Sound
  */
 
 
-//Note that move up = y--, move down = y++
+/**NOTES:
+   1)move up = y--, move down = y++
+   2)We could reuse bullets to have an infite number, but we decided
+    its more fun if you don't get to spam :). This can be changed by
+    changing firstFree back to 0 when it goes over MAX_NUM_BULLETS.
+**/
 
 //Polling rate of tasks in Hz
 //Values may need adjustmenst after testing.
@@ -57,17 +61,10 @@ static const char* start_msg = "BATTLE OF LED 1914";
 //This function displays a given message by tinygl
 void display_menu (const char* p1_msg, const char* p2_msg)
 {
-    //TODO: When we have IR:
-    // p1_ir_send("p2_msg");
-
     tinygl_clear();
+    
     if(show_menu || game_over) {
         tinygl_text(p1_msg);
-    } else {
-        tinygl_point_t pos;
-        pos.x = 0;
-        pos.y = 0;
-        tinygl_draw_message(p1_msg, pos, 1);
     }
     tinygl_update();
 }
@@ -114,6 +111,7 @@ void end_game(Player* player)
         display_menu("VICTORY :)" , "DEFEAT :(");
 
     } else {
+        game_over = 1;
         display_menu("DEFEAT :(", "VICTORY :)");
     }
     /*
@@ -152,6 +150,7 @@ Bullet* create_bullet(uint8_t x_pos, uint8_t y_pos, Player* target)
         bullet->pos.x = x_pos;
         bullet->pos.y = y_pos;
         bullet->target = target;
+        bullet->inactive = 0;
     }
 
 
@@ -209,7 +208,8 @@ static void display_task (__unused__ void *data)
     tinygl_update();
 }
 
-static void ir_recieve_task (__unused__ void *data) {
+static void ir_recieve_task (__unused__ void *data)
+{
     uint8_t col_type = 0;
     char move = '0';
     if (ir_uart_read_ready_p()) {
@@ -286,7 +286,7 @@ void init_positions (Player* player)
         player = player->next;
         i = 0;
     }
-    
+
     draw(&player1);
     tinygl_update();
 }
@@ -309,6 +309,7 @@ static void run_game_task (__unused__ void *data)
 
     } else if (game_over && navswitch_push_event_p (NAVSWITCH_PUSH)) {
         init_positions (&player1);
+        firstFree = 0;
         game_over = 0;
         show_menu = 1;
         display_menu(start_msg,start_msg);
