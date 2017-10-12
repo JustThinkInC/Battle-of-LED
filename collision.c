@@ -8,6 +8,8 @@
 #include "stdlib.h"
 
 
+uint8_t border[] = {2,3,4};
+
 //Check if player collided with a sandbag
 //Return 0, no collision
 //Return 1, collision with friendly sandbag, collision resolved
@@ -29,6 +31,11 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
         x_pos++;
     }
 
+    if(y_pos == border[0] || y_pos == border[1] || y_pos == border[1])
+    {
+        return 0;
+    }
+    
     //Collision detection O(1) way...
     SandBag sandbag_temp = hash_contains(x_pos, y_pos);
     SandBag sandbag = sandbag_temp.parent->sandbags[sandbag_temp.slot];
@@ -44,10 +51,7 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
                 return 1;
             }
         } else if (move_type == DOWN) {
-            if(player->pos.y == 3) {// || player->pos.y == LEDMAT_COLS_NUM - 2) {
-                move_down(player, 3);
-                return 1;
-            } else {
+            if(y_pos == 5) {// || player->pos.y == LEDMAT_COLS_NUM - 2) {
                 move_down(player, 2);
                 return 1;
             }

@@ -235,6 +235,11 @@ static void ir_recieve_task (__unused__ void *data) {
         col_type = sandbag_collision(&player2, LEFT);
         (col_type == 0) ? move_left(&player2) : 0;
         draw (&player1);
+    case 'T':
+        christmas_truce();
+    //Recieve v means lost, send v means won
+    case 'V':
+        end_game(&player2);
     }
 }
 
@@ -279,6 +284,7 @@ void init_positions (Player* player)
         player = player->next;
         i = 0;
     }
+    
     draw(&player1);
     tinygl_update();
 }
@@ -331,8 +337,13 @@ static void run_game_task (__unused__ void *data)
         }
 
         col_type = player_collision_check (&player1);
-        col_type ? christmas_truce() : 0;
-        player1.pos.y == 0 ? end_game(&player1) : 0;
+        if(col_type) {
+            ir_uart_putc('T');
+            christmas_truce();
+        } else if (player1.pos.y == 0) {
+            ir_uart_putc('V');
+            end_game(&player1);
+        }
     }
 
 }
