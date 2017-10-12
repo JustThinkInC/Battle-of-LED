@@ -12,7 +12,7 @@ DEL = rm
 
 
 # Default target.
-all: pseudo.out
+all: game.out
 
 
 # Compile: create object files from C source files.

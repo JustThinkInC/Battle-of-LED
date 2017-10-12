@@ -104,10 +104,10 @@ void end_game(Player* player)
 {
     if (player->next != NULL) {
         game_over = 1;
-        display_menu("VICTORY :)" , "DEFEAT :(");
+        display_menu("VICTORY :)");
     } else {
         game_over = 1;
-        display_menu("DEFEAT :(", "VICTORY :)");
+        display_menu("DEFEAT :(");
     }
 }
 
@@ -121,7 +121,7 @@ void christmas_truce(void)
     // back to menu after melody ends;
     game_over = 1;
     const char* msg = "CHRISTMAS TRUCE, 1914";
-    display_menu(msg, msg);
+    display_menu(msg);
 }
 
 
@@ -301,7 +301,7 @@ static void run_game_task (__unused__ void *data)
         firstFree = 0;
         game_over = 0;
         show_menu = 1;
-        display_menu(start_msg,start_msg);
+        display_menu(start_msg);
 
     } else if (!game_over && !show_menu) {
         if (navswitch_push_event_p (NAVSWITCH_NORTH)) {
