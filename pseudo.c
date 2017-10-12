@@ -77,21 +77,27 @@ void display_menu (const char* p1_msg, const char* p2_msg)
 void draw(Player* player)
 {
     tinygl_clear();
-    ir_uart_read_ready_p();
-    char move = ir_uart_getc();
+    uint8_t col_type = 0;
+    char move = '0';
+    if (ir_uart_read_ready_p()) {
+        move = ir_uart_getc();
+    }
     switch (move) {
-        case "U":
-            col_type = sandbag_collision(&player2, UP);
-            (col_type == 0) ? move_up(&player2, 10) : 0;
-        case "D":
-           col_type = sandbag_collision(&player2, DOWN);
-            (col_type == 0) ? move_down(&player2, 10) : 0;
-        case "R":
-           col_type = sandbag_collision(&player2, RIGHT);
-            (col_type == 0) ? move_right(&player2, 10) : 0;
-        case "L":
-            col_type = sandbag_collision(&player2, LEFT);
-            (col_type == 0) ? move_left(&player2, 10) : 0;
+    case 'U':
+        col_type = sandbag_collision(&player2, UP);
+        (col_type == 0) ? move_up(&player2, 10) : 0;
+        break;
+    case 'D':
+        col_type = sandbag_collision(&player2, DOWN);
+        (col_type == 0) ? move_down(&player2, 10) : 0;
+        break;
+    case 'R':
+        col_type = sandbag_collision(&player2, RIGHT);
+        (col_type == 0) ? move_right(&player2) : 0;
+        break;
+    case 'L':
+        col_type = sandbag_collision(&player2, LEFT);
+        (col_type == 0) ? move_left(&player2) : 0;
     }
     if (!game_over && !show_menu) {
         tinygl_draw_point (player->pos, 1);
@@ -299,22 +305,22 @@ static void run_game_task (__unused__ void *data)
             col_type = sandbag_collision(&player1, UP);
             (col_type == 0) ? move_up(&player1, 10) : 0;
             draw(&player1);
-            ir_uart_putc("D");
+            ir_uart_putc('D');
         } else if (navswitch_push_event_p (NAVSWITCH_SOUTH)) {
             col_type = sandbag_collision(&player1, DOWN);
             (col_type == 0) ? move_down(&player1, 10) : 0;
             draw(&player1);
-            ir_uart_putc("U");
+            ir_uart_putc('U');
         } else if (navswitch_push_event_p (NAVSWITCH_WEST)) {
             col_type = sandbag_collision(&player1, LEFT);
             (col_type == 0) ? move_left(&player1) : 0;
             draw(&player1);
-            ir_uart_putc("R");
+            ir_uart_putc('R');
         } else if (navswitch_push_event_p (NAVSWITCH_EAST)) {
             col_type = sandbag_collision(&player1, RIGHT);
             (col_type == 0) ? move_right(&player1) : 0;
             draw(&player1);
-            ir_uart_putc("L");
+            ir_uart_putc('L');
         } else if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
             shoot(&player1);
         }
