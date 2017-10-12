@@ -3,9 +3,11 @@
 #include "navswitch.h"
 #include "pio.h"
 #include "tinygl.h"
+#include "pacer.h"
 
 #define NAVSWITCH_TASK_RATE 100
 #define DISPLAY_TASK_RATE 250
+#define PACER_RATE 500
 
 #define PIEZO1_PIO PIO_DEFINE (PORT_D, 4)
 #define PIEZO2_PIO PIO_DEFINE (PORT_D, 6)
@@ -30,6 +32,9 @@ static void navswitch_task (__unused__ void *data)
     if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
         pio_output_toggle (PIEZO1_PIO);
         pio_output_toggle (PIEZO2_PIO);
+        pacer_wait ();
+        pio_output_toggle (PIEZO1_PIO);
+        pio_output_toggle (PIEZO2_PIO);
     }
 }
 
@@ -45,6 +50,7 @@ int main (void)
     system_init ();
     navswitch_init ();
     tinygl_init (DISPLAY_TASK_RATE);
+    pacer_init (PACER_RATE)
     
     pio_config_set (PIEZO1_PIO, PIO_OUTPUT_LOW);
     pio_config_set (PIEZO2_PIO, PIO_OUTPUT_HIGH);
