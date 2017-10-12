@@ -10,7 +10,7 @@
 #define STRUCT_INIT_H
 #define SANDBAG_HEALTH 2
 #define SANDBAG_NUM LEDMAT_COLS_NUM 
-//10 target sandbags with 2 health = 20 bullets + 10 for enemy = 30 bullets
+//10 target sandbags with 2 health = 10 bullets + 20 for enemy = 30 bullets
 #define MAX_NUM_BULLETS 30
 
 typedef struct sandbag_s SandBag;
@@ -21,6 +21,7 @@ typedef struct player_s Player;
 struct sandbag_s {
     uint8_t health;
     tinygl_point_t pos;
+    uint8_t slot;
     Player* parent;
 };
 
@@ -33,6 +34,7 @@ struct player_s {
 
 struct bullet_s {
     tinygl_point_t pos;
+    bool inactive;
     Player* target;
 };
 #endif

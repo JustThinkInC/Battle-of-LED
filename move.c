@@ -39,7 +39,7 @@ void move_down(Player* player, uint8_t y_change)
             if (player->pos.y < 6 ) {
                 player->pos.y++;
             }
-            //Need to fix this one
+            //Need to fix this one, supposed to  be for player2
         } else {
             if (player->pos.y < LEDMAT_COLS_NUM) {
                 player->pos.y++;

@@ -30,60 +30,42 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
     }
 
     //Collision detection O(1) way...
-    SandBag sandbag = hash_contains(x_pos, y_pos);
+    SandBag sandbag_temp = hash_contains(x_pos, y_pos);
+    SandBag sandbag = sandbag_temp.parent->sandbags[sandbag_temp.slot];
     if (sandbag.health == 0) {
         return 0;
+    } else if (sandbag.parent != player) {
+        return 2;
     } else {
-        if (sandbag.parent != player) {
-            return 2;
-        } else {
-            if (move_type == UP) {
-                //If sandbag above does exist
-                sandbag = hash_contains(sandbag.pos.x, sandbag.pos.y-1);
-                if (sandbag.health > 0 && sandbag.parent == player) {
-                    /*move_up(player);
-                    move_up(player);
-                    move_up(player);
-                    */
-                    move_up(player, 3);
-                    return 1;
-                } else {
-                    move_up(player, 2);
-                    /*move_up(player);
-                    move_up(player);
-                    */
-                    return 1;
+        if (move_type == UP) {
+            //If sandbag above does exist
+            if (sandbag.health > 0 && sandbag.parent == player) {
+                move_up(player, 2);
+                return 1;
+            }
+        } else if (move_type == DOWN) {
+            if(player->pos.y == 3) {// || player->pos.y == LEDMAT_COLS_NUM - 2) {
+                move_down(player, 3);
+                return 1;
+            } else {
+                move_down(player, 2);
+                return 1;
+            }
+        } else if (move_type == LEFT) {
+            if (player->sandbags[sandbag.pos.x-1].health == 0) {
+                if (player->sandbags[sandbag.pos.x-1].pos.y == y_pos) {
+                    move_left (player);
                 }
-            } else if (move_type == DOWN) {
-                if(player->pos.y == 3) {// || player->pos.y == LEDMAT_COLS_NUM - 2) {
-                   /* move_down(player);
-                    move_down(player);
-                    move_down(player);*/
-                    move_down(player, 3);
-                    return 1;
-                } else {/*
-                    move_down(player);
-                    move_down(player);
-                    move_down(player);
-                    */
-                    move_down(player, 2);
-                    return 1;
-                }
-            } else if (move_type == LEFT) {
-                if (player->sandbags[sandbag.pos.x-1].health == 0) {
-                    if (player->sandbags[sandbag.pos.x-1].pos.y == y_pos) {
-                        move_left (player);
-                    }
-                }
-            } else if (move_type == RIGHT) {
-                if (player->sandbags[sandbag.pos.x+1].health == 0) {
-                    if (player->sandbags[sandbag.pos.x+1].pos.y == y_pos) {
-                        move_right (player);
-                    }
+            }
+        } else if (move_type == RIGHT) {
+            if (player->sandbags[sandbag.pos.x+1].health == 0) {
+                if (player->sandbags[sandbag.pos.x+1].pos.y == y_pos) {
+                    move_right (player);
                 }
             }
         }
     }
+
 
     return 0;
 }

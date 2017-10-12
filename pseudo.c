@@ -3,7 +3,7 @@
 #include "pio.h"
 #include "tinygl.h"
 #include "task.h"
-#include "../fonts/font5x7_1.h"
+#include "../fonts/font3x5_1.h"
 #include "navswitch.h"
 #include "led.h"
 
@@ -94,7 +94,7 @@ void draw(Player* player)
         }
 
         //Check that a bullet has been made and the bullet does exist
-        if (firstFree > 0 && &bulletPool[firstFree-1] != NULL) {
+        if (firstFree > 0 && !&bulletPool[firstFree-1].inactive) {
             Bullet bullet = bulletPool[firstFree-1];
             tinygl_draw_point(bullet.pos, 1);
             tinygl_update();
@@ -169,27 +169,34 @@ static void shoot (Player* player)
     Bullet* bullet;
     //If player1 fired the shot
     if(player->next != NULL) {
-        bullet = create_bullet(player->pos.x, player->pos.y-1, player->next);
+        bullet = create_bullet(player->pos.x, player->pos.y, player->next);
     } else {
-        bullet = create_bullet(player->pos.x, player->pos.y+1, player->prev);
+        bullet = create_bullet(player->pos.x, player->pos.y, player->prev);
     }
 
     Player* target = bullet->target;
-    while(bullet != NULL) {
+    while(!bullet->inactive) {
         player->next != NULL ? bullet->pos.y-- : bullet->pos.y--;
-        SandBag sandbag = hash_contains(bullet->pos.x, bullet->pos.y);
-        draw(&player1);
 
-        if (sandbag.health > 0 && sandbag.parent == target) {
-            sandbag.health--;
-            bullet = NULL;
+        //We need a temp (copy) of the sandbag, so we can make a pointer
+        //to the real sandbag
+        SandBag sandbag_temp = hash_contains(bullet->pos.x, bullet->pos.y);
+        SandBag* sandbag = &target->sandbags[sandbag_temp.slot];
+
+        draw(&player1);
+        uint8_t y_pos = target->sandbags[0].pos.y;
+        if (sandbag->health > 0 && sandbag->parent == target && bullet->pos.y == y_pos) {
+            sandbag->health--;
+            hash_add(*sandbag);
+            bullet->inactive = 1;
+            draw(&player1);
         } else if (bullet->pos.x == target->pos.x && bullet->pos.y == target->pos.y) {
             bullet = NULL;
             state = !state;
             led_set (LED1, state);
             end_game(&player1);
         } else if (bullet->pos.y >= LEDMAT_ROWS_NUM || bullet->pos.y < 0) {
-            bullet = NULL;
+            bullet->inactive = 1;
             state = !state;
             led_set (LED1, state);
         }
@@ -211,12 +218,12 @@ void init_positions (Player* player)
     player2.prev = &player1;
 
 
-    bool init = 1;
+    uint8_t init = 2;
     while (init) {
         player->pos.x = ((LEDMAT_COLS_NUM-1) / 2); //Center of led matrix
-        player->pos.y = (player->next != NULL) ? LEDMAT_ROWS_NUM-1 : LEDMAT_COLS_NUM*2;
-        player = player->next;
-        init = 0;
+        player->pos.y = (player->next != NULL) ? LEDMAT_ROWS_NUM-1 : 0;
+        init > 1 ? player = player->next : 0;
+        init--;
     }
     player = player->prev; //Back to player1
 
@@ -224,25 +231,28 @@ void init_positions (Player* player)
     uint8_t x_pos = 0;
     uint8_t y_pos = LEDMAT_ROWS_NUM - 2;
 
-    //while (player != NULL) {
-    while (i < SANDBAG_NUM) {
-        if(x_pos > LEDMAT_COLS_NUM-1) {
-            x_pos = 0;
-            y_pos--;
+    while (player != NULL) {
+        while (i < SANDBAG_NUM) {
+            if(x_pos > LEDMAT_COLS_NUM-1) {
+                x_pos = 0;
+                y_pos--;
+            }
+            y_pos = (player->next == NULL) ? 1 : y_pos;
+            player->sandbags[i].pos.x = x_pos;
+            player->sandbags[i].pos.y = y_pos;
+            player->sandbags[i].health = SANDBAG_HEALTH;
+            player->sandbags[i].parent = player;
+            player->sandbags[i].slot = i;
+            hash_add(player->sandbags[i]);
+            x_pos++;
+            i++;
         }
-        player->sandbags[i].pos.x = x_pos;
-        player->sandbags[i].pos.y = y_pos;
-        player->sandbags[i].health = SANDBAG_HEALTH;
-        player->sandbags[i].parent = player;
-        hash_add(player->sandbags[i]);
-        x_pos++;
-        i++;
-    }
 
-    //player = player->next;
-    i = 0;
-    //}
+        player = player->next;
+        i = 0;
+    }
     draw(&player1);
+    tinygl_update();
 }
 
 
@@ -250,19 +260,21 @@ void init_positions (Player* player)
 //functions to handle them
 //void run_game(Player* player)
 static void run_game_task (__unused__ void *data)
-{
+{    
     uint8_t col_type = 0;
     navswitch_update();
-    //If game over, we don't read input from navswitch
+    
     if (show_menu && navswitch_push_event_p (NAVSWITCH_PUSH)) {
         show_menu = 0;
         game_over = 0;
         draw(&player1);
+        
     } else if (game_over && navswitch_push_event_p (NAVSWITCH_PUSH)) {
         init_positions (&player1);
         game_over = 0;
         show_menu = 1;
         display_menu(start_msg,start_msg);
+        
     } else if (!game_over && !show_menu) {
         if (navswitch_push_event_p (NAVSWITCH_NORTH)) {
             col_type = sandbag_collision(&player1, UP);
@@ -286,6 +298,7 @@ static void run_game_task (__unused__ void *data)
 
         col_type = player_collision_check (&player1);
         col_type ? christmas_truce() : 0;
+        player1.pos.y == 0 ? end_game(&player1) : 0;
     }
 
 }
@@ -302,15 +315,16 @@ int main(void)
     system_init ();
     navswitch_init ();
     tinygl_init (DISPLAY_TASK_RATE);
-    tinygl_font_set (&font5x7_1);
+    tinygl_font_set (&font3x5_1);
     tinygl_text_speed_set (10);
     tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);
+    tinygl_text_dir_set(TINYGL_TEXT_DIR_ROTATE);
     init_positions(&player1);
 
     display_menu(start_msg, start_msg);
 
     task_schedule (tasks, ARRAY_SIZE (tasks));
-
+    
 
     return 0;
 }
