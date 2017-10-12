@@ -16,7 +16,7 @@ all: pseudo.out
 
 
 # Compile: create object files from C source files.
-pseudo.o: pseudo.c ../drivers/avr/system.h ../drivers/avr/pio.h ../drivers/navswitch.h struct_init.h hashmap.h move.h collision.h ../utils/tinygl.h ../utils/font.h ../utils/task.h ../drivers/avr/ir_uart.h ../drivers/avr/usart1.h
+game.o: game.c ../drivers/avr/system.h ../drivers/avr/pio.h ../drivers/navswitch.h struct_init.h hashmap.h move.h collision.h ../utils/tinygl.h ../utils/font.h ../utils/task.h ../drivers/avr/ir_uart.h ../drivers/avr/usart1.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 system.o: ../drivers/avr/system.c ../drivers/avr/system.h
@@ -72,7 +72,7 @@ usart1.o: ../drivers/avr/usart1.c ../drivers/avr/system.h ../drivers/avr/usart1.
 
 
 # Link: create output file (executable) from object files.
-pseudo.out: pseudo.o system.o pio.o navswitch.o hashmap.o move.o collision.o timer.o ledmat.o display.o font.o tinygl.o task.o led.o timer0.o ir_uart.o prescale.o usart1.o
+game.out: game.o system.o pio.o navswitch.o hashmap.o move.o collision.o timer.o ledmat.o display.o font.o tinygl.o task.o led.o timer0.o ir_uart.o prescale.o usart1.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
@@ -86,8 +86,8 @@ clean:
 
 # Target: program project.
 .PHONY: program
-program: pseudo.out
-	$(OBJCOPY) -O ihex pseudo.out pseudo.hex
-	dfu-programmer atmega32u2 erase; dfu-programmer atmega32u2 flash pseudo.hex; dfu-programmer atmega32u2 start
+program: game.out
+	$(OBJCOPY) -O ihex game.out game.hex
+	dfu-programmer atmega32u2 erase; dfu-programmer atmega32u2 flash game.hex; dfu-programmer atmega32u2 start
 
 
