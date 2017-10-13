@@ -179,6 +179,7 @@ static void shoot (Player* player)
             bullet = NULL;
             state = !state;
             led_set (LED1, state);
+            ir_uart_putc('V');
             end_game(&player1);
         } else if (bullet->pos.y >= LEDMAT_ROWS_NUM || bullet->pos.y < 0) {
             bullet->inactive = 1;
