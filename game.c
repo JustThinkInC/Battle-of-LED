@@ -211,6 +211,7 @@ static void ir_recieve_task (__unused__ void *data)
         player1.sandbags[(uint8_t)action].health--;
         hash_add(player1.sandbags[(uint8_t)action]);
         draw(&player1);
+        break;
     case 'U':
         col_type = sandbag_collision(&player2, UP);
         (col_type == 0) ? move_up(&player2, 10) : 0;
