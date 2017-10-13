@@ -207,8 +207,8 @@ static void ir_recieve_task (__unused__ void *data)
     }
     if (action >= 0 && action <= SANDBAG_NUM) {
         Player* player = &player1;//.sandbags[(uint8_t)action].health--;
-        player->sandbags[(uint8_t)action].health--;
-        hash_add(player1.sandbags[(uint8_t)action]);
+        player->sandbags[SANDBAG_NUM - action - 1].health--;
+        hash_add(player1.sandbags[SANDBAG_NUM - action - 1]);
         draw(&player1);
     } else {
         switch (action) {
