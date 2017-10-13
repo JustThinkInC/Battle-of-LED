@@ -173,6 +173,7 @@ static void shoot (Player* player)
             sandbag->health--;
             hash_add(*sandbag);
             bullet->inactive = 1;
+            ir_uart_putc(sandbag->slot);
             draw(&player1);
         } else if (bullet->pos.x == target->pos.x && bullet->pos.y == target->pos.y) {
             bullet = NULL;
@@ -200,12 +201,16 @@ static void ir_recieve_task (__unused__ void *data)
 {
     uint8_t col_type = 0;
     
-    char move = '0';
+    char action = '0'; //The action to be taken
     if (ir_uart_read_ready_p()) {
-        move = ir_uart_getc();
+        action = ir_uart_getc();
     }
     
-    switch (move) {
+    switch (action) {
+    case action >= '0' && action <= LEDMAT_COLS_NUM:
+        player1.sandbags[(uint8_t)action].health--;
+        hash_add(player1.sandbags[(uint8_t)action]);
+        draw(&player1);
     case 'U':
         col_type = sandbag_collision(&player2, UP);
         (col_type == 0) ? move_up(&player2, 10) : 0;
