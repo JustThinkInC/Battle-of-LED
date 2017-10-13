@@ -205,21 +205,21 @@ static void ir_recieve_task (__unused__ void *data)
     if (ir_uart_read_ready_p()) {
         action = ir_uart_getc();
     }
-    
+    Player* player = &player1;//.sandbags[(uint8_t)action].health--;
     switch (action) {
-    case action >= '0' && action <= LEDMAT_COLS_NUM:
-        player1.sandbags[(uint8_t)action].health--;
+    case action >= '0' && action <= SANDBAG_NUM:
+        player->sandbags[(uint8_t)action].health--;
         hash_add(player1.sandbags[(uint8_t)action]);
         draw(&player1);
         break;
     case 'U':
         col_type = sandbag_collision(&player2, UP);
-        (col_type == 0) ? move_up(&player2, 10) : 0;
+        (col_type == 0) ? move_up(&player2, 1) : 0;
         draw (&player1);
         break;
     case 'D':
         col_type = sandbag_collision(&player2, DOWN);
-        (col_type == 0) ? move_down(&player2, 10) : 0;
+        (col_type == 0) ? move_down(&player2, 1) : 0;
         draw (&player1);
         break;
     case 'R':
