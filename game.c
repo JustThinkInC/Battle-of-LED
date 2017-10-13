@@ -8,15 +8,14 @@
 #include "navswitch.h"
 #include "led.h"
 #include "ir_uart.h"
+#include "tweeter.h"
+#include "mmelody.h"
 
 //George Khella's header files
 #include "struct_init.h"
 #include "hashmap.h"
 #include "move.h"
 #include "collision.h"
-
-//Theo Harber's header files
-
 
 
 /* ISSUES/CONCERNS:
@@ -35,8 +34,15 @@
     changing firstFree back to 0 when it goes over MAX_NUM_BULLETS.
 **/
 
+//Defining pins for speaker
+#define PIEZO1_PIO PIO_DEFINE (PORT_D, 4)
+#define PIEZO2_PIO PIO_DEFINE (PORT_D, 6)
+
 //Polling rate of tasks in Hz
 //Values may need adjustmenst after testing.
+#define TWEETER_TASK_RATE 5000
+#define TUNE_TASK_RATE 100
+#define TUNE_BPM_RATE 200
 #define DISPLAY_TASK_RATE 300
 #define GAME_TASK_RATE 100
 
@@ -48,6 +54,35 @@ static bool game_over = 0; //If game over
 bool show_menu = 1; //Display menu first
 
 
+// static variables for sound functionality
+static tweeter_scale_t scale_table[] = TWEETER_SCALE_TABLE (TWEETER_TASK_RATE);
+static tweeter_t tweeter;
+static mmelody_t melody;
+static mmelody_obj_t melody_info;
+static tweeter_obj_t tweeter_info;
+
+static const char menu_tune[] =
+{
+#include "jingle_bells.mmel"
+" :"
+};
+
+static const char christmas_tune[] =
+{
+#include "merry_christmas.mmel"
+};
+
+static const char victory_tune[] =
+{
+#include "imperial_march.mmel"
+};
+
+static const char defeat_tune[] =
+{
+#include "hes_a_pirate.mmel"
+};
+
+
 //Create the players, we probably need to find another way to do this...
 Player player1;
 Player player2;
@@ -56,10 +91,45 @@ Player player2;
 //Name I can think of is "Battle of LED", if you have another name tell me!
 static const char* start_msg = "BATTLE OF LED 1914";
 
+static void tweeter_task_init (void)
+{
+    tweeter = tweeter_init (&tweeter_info, TWEETER_TASK_RATE, scale_table);
+
+    pio_config_set (PIEZO1_PIO, PIO_OUTPUT_LOW);
+    pio_config_set (PIEZO2_PIO, PIO_OUTPUT_LOW);
+
+}
+
+static void tweeter_task (__unused__ void *data)
+{
+    bool state;
+
+    state = tweeter_update (tweeter);
+
+    pio_output_set (PIEZO1_PIO, state);
+    pio_output_set (PIEZO2_PIO, !state);
+
+}
+
+static void tune_task_init (void)
+{
+    melody = mmelody_init (&melody_info, TUNE_TASK_RATE, 
+			   (mmelody_callback_t) tweeter_note_play, tweeter);
+
+    mmelody_speed_set (melody, TUNE_BPM_RATE);
+}
+
+
+static void tune_task (__unused__ void *data)
+{
+    mmelody_update (melody);
+}
 
 //This function displays a given message by tinygl
 void display_menu (const char* msg)
 {
+    //mmelody_play (melody, menu_tune);
+    
     tinygl_clear();
     if(show_menu || game_over) {
         tinygl_text(msg);
@@ -70,6 +140,8 @@ void display_menu (const char* msg)
 //This function draws all game objects (player, sandbags, bullets)
 void draw(Player* player)
 {
+    //mmelody_play (melody, " ");
+    
     tinygl_clear();
     if (!game_over && !show_menu) {
         tinygl_draw_point (player->pos, 1);
@@ -105,9 +177,11 @@ void end_game(Player* player)
     if (player->next != NULL) {
         game_over = 1;
         display_menu("VICTORY :)");
+        //mmelody_play (melody, victory_tune);
     } else {
         game_over = 1;
         display_menu("DEFEAT :(");
+        //mmelody_play (melody, defeat_tune);
     }
 }
 
@@ -116,9 +190,8 @@ void end_game(Player* player)
 //to a historical event :)
 void christmas_truce(void)
 {
-    //TODO: End game
-    // play melody = "We wish you a Merry Christmas";
-    // back to menu after melody ends;
+    //mmelody_play (melody, christmas_tune);
+
     game_over = 1;
     const char* msg = "CHRISTMAS TRUCE, 1914";
     display_menu(msg);
@@ -334,6 +407,7 @@ static void run_game_task (__unused__ void *data)
             ir_uart_putc('L');
         } else if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
             shoot(&player1);
+            mmelody_play (melody, "G,");
         }
 
         col_type = player_collision_check (&player1);
@@ -351,6 +425,8 @@ static void run_game_task (__unused__ void *data)
 int main(void)
 {
     task_t tasks[] = {
+        {.func = tweeter_task, .period = TASK_RATE / TWEETER_TASK_RATE},
+        {.func = tune_task, .period = TASK_RATE / TUNE_TASK_RATE},
         {.func = display_task, .period = TASK_RATE / DISPLAY_TASK_RATE},
         {.func = run_game_task, .period = TASK_RATE / GAME_TASK_RATE},
         {.func = ir_recieve_task, .period = TASK_RATE / GAME_TASK_RATE},
@@ -358,6 +434,8 @@ int main(void)
 
     //Initialisation
     system_init ();
+    tweeter_task_init ();
+    tune_task_init ();
     navswitch_init ();
     ir_uart_init();
     tinygl_init (DISPLAY_TASK_RATE);

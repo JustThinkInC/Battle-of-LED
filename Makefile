@@ -1,7 +1,7 @@
 # File:   Makefile
-# Author: M. P. Hayes, UCECE
-# Date:   12 Sep 2010
-# Descr:  Makefile for pseudo
+# Author: Theo Harbers & George Khella
+# Date:   Oct 2017
+# Descr:  Makefile for Game
 
 # Definitions.
 CC = avr-gcc
@@ -16,7 +16,7 @@ all: game.out
 
 
 # Compile: create object files from C source files.
-game.o: game.c ../drivers/avr/system.h ../drivers/avr/pio.h ../drivers/navswitch.h struct_init.h hashmap.h move.h collision.h ../utils/tinygl.h ../utils/font.h ../utils/task.h ../drivers/avr/ir_uart.h ../drivers/avr/usart1.h
+game.o: game.c ../drivers/avr/system.h ../drivers/avr/pio.h ../drivers/navswitch.h struct_init.h hashmap.h move.h collision.h ../utils/tinygl.h ../utils/font.h ../utils/task.h ../drivers/avr/ir_uart.h ../drivers/avr/usart1.h ../extra/mmelody.h ../extra/ticker.h ../extra/tweeter.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 system.o: ../drivers/avr/system.c ../drivers/avr/system.h
@@ -70,9 +70,18 @@ prescale.o: ../drivers/avr/prescale.c ../drivers/avr/prescale.h ../drivers/avr/s
 usart1.o: ../drivers/avr/usart1.c ../drivers/avr/system.h ../drivers/avr/usart1.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+mmelody.o: ../extra/mmelody.c ../drivers/avr/system.h ../extra/mmelody.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+ticker.o: ../extra/ticker.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+tweeter.o: ../extra/tweeter.c ../drivers/avr/system.h ../extra/ticker.h ../extra/tweeter.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
 
 # Link: create output file (executable) from object files.
-game.out: game.o system.o pio.o navswitch.o hashmap.o move.o collision.o timer.o ledmat.o display.o font.o tinygl.o task.o led.o timer0.o ir_uart.o prescale.o usart1.o
+game.out: game.o system.o pio.o navswitch.o hashmap.o move.o collision.o timer.o ledmat.o display.o font.o tinygl.o task.o led.o timer0.o ir_uart.o prescale.o usart1.o mmelody.o ticker.o tweeter.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
