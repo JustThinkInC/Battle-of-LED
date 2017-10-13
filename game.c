@@ -173,7 +173,7 @@ static void shoot (Player* player)
             sandbag->health--;
             hash_add(*sandbag);
             bullet->inactive = 1;
-            ir_uart_putc(sandbag->slot);
+            ir_uart_putc((uint8_t)sandbag->slot);
             draw(&player1);
         } else if (bullet->pos.x == target->pos.x && bullet->pos.y == target->pos.y) {
             bullet = NULL;
@@ -207,7 +207,7 @@ static void ir_recieve_task (__unused__ void *data)
     }
     Player* player = &player1;//.sandbags[(uint8_t)action].health--;
     switch (action) {
-    case action >= '0' && action <= SANDBAG_NUM:
+    case 1:
         player->sandbags[(uint8_t)action].health--;
         hash_add(player1.sandbags[(uint8_t)action]);
         draw(&player1);
