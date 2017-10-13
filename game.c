@@ -200,36 +200,45 @@ static void display_task (__unused__ void *data)
 static void ir_recieve_task (__unused__ void *data)
 {
     uint8_t col_type = 0;
-   
+
     char action = '0'; //The action to be taken
     if (ir_uart_read_ready_p()) {
         action = ir_uart_getc();
     }
-    Player* player = &player1;
-    if( action >= 0 && action <= SANDBAG_NUM) {
+    if (action >= 0 && action <= SANDBAG_NUM) {
+        Player* player = &player1;//.sandbags[(uint8_t)action].health--;
         player->sandbags[(uint8_t)action].health--;
         hash_add(player1.sandbags[(uint8_t)action]);
         draw(&player1);
-    } else if(action =='U') {
-        col_type = sandbag_collision(&player2, UP);
-        (col_type == 0) ? move_up(&player2, 1) : 0;
-        draw (&player1);
-    } else if (action =='D') {
-        col_type = sandbag_collision(&player2, DOWN);
-        (col_type == 0) ? move_down(&player2, 1) : 0;
-        draw (&player1);
-    } else if (action =='R') {
-        col_type = sandbag_collision(&player2, RIGHT);
-        (col_type == 0) ? move_right(&player2) : 0;
-        draw (&player1);
-    } else if (action =='L') {
-        col_type = sandbag_collision(&player2, LEFT);
-        (col_type == 0) ? move_left(&player2) : 0;
-        draw (&player1);
-    } else if ('T') {
-        christmas_truce();
-    } else if (action == 'V') {
-        end_game(&player2);
+    } else {
+        switch (action) {
+        case 'U':
+            col_type = sandbag_collision(&player2, UP);
+            (col_type == 0) ? move_up(&player2, 1) : 0;
+            draw (&player1);
+            break;
+        case 'D':
+            col_type = sandbag_collision(&player2, DOWN);
+            (col_type == 0) ? move_down(&player2, 1) : 0;
+            draw (&player1);
+            break;
+        case 'R':
+            col_type = sandbag_collision(&player2, RIGHT);
+            (col_type == 0) ? move_right(&player2) : 0;
+            draw (&player1);
+            break;
+        case 'L':
+            col_type = sandbag_collision(&player2, LEFT);
+            (col_type == 0) ? move_left(&player2) : 0;
+            draw (&player1);
+            break;
+        case 'T':
+            christmas_truce();
+            break;
+        //Recieve V means lost
+        case 'V':
+            end_game(&player2);
+        }
     }
 }
 
