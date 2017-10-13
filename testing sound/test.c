@@ -13,7 +13,7 @@
 
 #define TWEETER_TASK_RATE 5000
 #define TUNE_TASK_RATE 100
-#define TUNE_BPM_RATE 100
+#define TUNE_BPM_RATE 200
 #define NAVSWITCH_TASK_RATE 100
 
 static tweeter_scale_t scale_table[] = TWEETER_SCALE_TABLE (TWEETER_TASK_RATE);
@@ -23,10 +23,9 @@ static mmelody_obj_t melody_info;
 static tweeter_obj_t tweeter_info;
 
 
-static const char game_over_tune[] =
+static const char christmas_tune[] =
 {
-#include "imperial_march.mmel"
-"    >"
+#include "merry_christmas.mmel"
 };
 
 
@@ -35,9 +34,8 @@ static void tweeter_task_init (void)
     tweeter = tweeter_init (&tweeter_info, TWEETER_TASK_RATE, scale_table);
 
     pio_config_set (PIEZO1_PIO, PIO_OUTPUT_LOW);
-#ifdef PIEZO2_PIO
     pio_config_set (PIEZO2_PIO, PIO_OUTPUT_LOW);
-#endif
+
 }
 
 
@@ -48,10 +46,8 @@ static void tweeter_task (__unused__ void *data)
     state = tweeter_update (tweeter);
 
     pio_output_set (PIEZO1_PIO, state);
-#ifdef PIEZO2_PIO
-    /* Push-pull piezo tweeter drive.  */
     pio_output_set (PIEZO2_PIO, !state);
-#endif
+
 }
 
 
@@ -77,8 +73,7 @@ static void navswitch_task (__unused__ void *data)
     
     if (navswitch_push_event_p (NAVSWITCH_PUSH))
     {
-        mmelody_play (melody, "G");
-        mmelody_play (melody, "C");
+        mmelody_play (melody, christmas_tune);
     }
 }
 
