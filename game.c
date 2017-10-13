@@ -200,43 +200,35 @@ static void display_task (__unused__ void *data)
 static void ir_recieve_task (__unused__ void *data)
 {
     uint8_t col_type = 0;
-    
+   
     char action = '0'; //The action to be taken
     if (ir_uart_read_ready_p()) {
         action = ir_uart_getc();
     }
-    Player* player = &player1;//.sandbags[(uint8_t)action].health--;
-    switch (action) {
-    case 1:
+    Player* player = &player1;
+    if( action >= 0 && action <= SANDBAG_NUM) {
         player->sandbags[(uint8_t)action].health--;
         hash_add(player1.sandbags[(uint8_t)action]);
         draw(&player1);
-        break;
-    case 'U':
+    } else if(action =='U') {
         col_type = sandbag_collision(&player2, UP);
         (col_type == 0) ? move_up(&player2, 1) : 0;
         draw (&player1);
-        break;
-    case 'D':
+    } else if (action =='D') {
         col_type = sandbag_collision(&player2, DOWN);
         (col_type == 0) ? move_down(&player2, 1) : 0;
         draw (&player1);
-        break;
-    case 'R':
+    } else if (action =='R') {
         col_type = sandbag_collision(&player2, RIGHT);
         (col_type == 0) ? move_right(&player2) : 0;
         draw (&player1);
-        break;
-    case 'L':
+    } else if (action =='L') {
         col_type = sandbag_collision(&player2, LEFT);
         (col_type == 0) ? move_left(&player2) : 0;
         draw (&player1);
-        break;
-    case 'T':
+    } else if ('T') {
         christmas_truce();
-        break;
-    //Recieve V means lost
-    case 'V':
+    } else if (action == 'V') {
         end_game(&player2);
     }
 }
@@ -255,13 +247,13 @@ void init_positions (Player* player)
         init > 1 ? player = player->next : 0;
         init--;
     }
-    
+
     player = player->prev; //Back to player1
 
     uint8_t i = 0;
     uint8_t x_pos = 0;
     //Make trench on second to last row
-    uint8_t y_pos = LEDMAT_ROWS_NUM - 2; 
+    uint8_t y_pos = LEDMAT_ROWS_NUM - 2;
 
     while (player != NULL) {
         while (i < SANDBAG_NUM) {
@@ -364,7 +356,7 @@ int main(void)
     tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);
     tinygl_text_dir_set(TINYGL_TEXT_DIR_ROTATE);
     init_positions(&player1);
-    
+
     //Show the title screen to the player
     display_menu(start_msg);
 
