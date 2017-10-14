@@ -1,6 +1,9 @@
 BATTLE OF LED, 1914
 --George K & Theo Harbers
 
+By continuing and/or downloading, you confirm that you have read and accepted 
+the license.
+
 For compiling and running on a Linux machine do the following steps:
 1) Compile the game, this will produce .hex, .o, and .bin files:
     make
