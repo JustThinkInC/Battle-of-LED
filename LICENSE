@@ -1,0 +1,26 @@
+--------------------------------------------------------------------------------
+BATTLE OF LED 1914 License:
+--------------------------------------------------------------------------------
+
+All files in this git repository are copyright property of George Khella & Theo
+Harbers.
+Header files, such as stdlib.h and tinygl.h are property of their respective 
+owners.
+You shall not redistribute the files, nor modify them, nor claim them as your 
+own property. 
+You shall not make any modifications.
+The repository may be downloaded and run for educational purposes (see note
+below) or your personal entertainment.
+
+
+Note: To qualify for educational purposes, you must be either 
+      A) Representative or staff of an internationally recognised institution
+         and working in the department(s) of: Computer Science,
+         Electrical and Computer Engineering, Software Engineering,
+         Mechatronics Engineering, Graphics or Game Development related departments.
+      B) A student studying in one of the above departments, or in the case of a 
+         general engineering first year, completing at least one software, 
+         embedded systems or game development course. The game and its files 
+         must directly apply to the course.
+
+This license must be not deleted.
