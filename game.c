@@ -23,15 +23,14 @@
 */
 
 /* TODO:
- * Sound
+ * Sound - Victory & Defeat
  */
 
 
 /**NOTES:
    1)move up = y--, move down = y++
    2)We could reuse bullets to have an infite number, but we decided
-    its more fun if you don't get to spam :). This can be changed by
-    changing firstFree back to 0 when it goes over MAX_NUM_BULLETS.
+    its more fun (and realistic!) if you have to be slightly careful :).
 **/
 
 //Defining pins for speaker
@@ -61,25 +60,22 @@ static mmelody_t melody;
 static mmelody_obj_t melody_info;
 static tweeter_obj_t tweeter_info;
 
-static const char menu_tune[] =
-{
-#include "jingle_bells.mmel"
-" :"
+static const char menu_tune[] = {
+#include "the_front_short.mmel"
+    " :"
 };
 
-static const char christmas_tune[] =
-{
-#include "merry_christmas.mmel"
+static const char christmas_tune[] = {
+#include "xmas.mmel"
+    " :"
 };
 
-static const char victory_tune[] =
-{
+static const char victory_tune[] = {
 #include "imperial_march.mmel"
 };
 
-static const char defeat_tune[] =
-{
-#include "hes_a_pirate.mmel"
+static const char defeat_tune[] = {
+#include "imperial_march.mmel"
 };
 
 
@@ -107,14 +103,14 @@ static void tweeter_task (__unused__ void *data)
     state = tweeter_update (tweeter);
 
     pio_output_set (PIEZO1_PIO, state);
-    pio_output_set (PIEZO2_PIO, !state);
+    pio_output_set (PIEZO2_PIO, state); //using !state makes it on and whistle 
 
 }
 
 static void tune_task_init (void)
 {
-    melody = mmelody_init (&melody_info, TUNE_TASK_RATE, 
-			   (mmelody_callback_t) tweeter_note_play, tweeter);
+    melody = mmelody_init (&melody_info, TUNE_TASK_RATE,
+                           (mmelody_callback_t) tweeter_note_play, tweeter);
 
     mmelody_speed_set (melody, TUNE_BPM_RATE);
 }
@@ -127,12 +123,11 @@ static void tune_task (__unused__ void *data)
 
 //This function displays a given message by tinygl
 void display_menu (const char* msg)
-{
-    //mmelody_play (melody, menu_tune);
-    
+{ 
     tinygl_clear();
     if(show_menu || game_over) {
         tinygl_text(msg);
+        mmelody_play (melody, menu_tune);
     }
     tinygl_update();
 }
@@ -140,8 +135,8 @@ void display_menu (const char* msg)
 //This function draws all game objects (player, sandbags, bullets)
 void draw(Player* player)
 {
-    //mmelody_play (melody, " ");
-    
+    mmelody_play (melody, " ");
+
     tinygl_clear();
     if (!game_over && !show_menu) {
         tinygl_draw_point (player->pos, 1);
@@ -177,11 +172,13 @@ void end_game(Player* player)
     if (player->next != NULL) {
         game_over = 1;
         display_menu("VICTORY :)");
-        //mmelody_play (melody, victory_tune);
+        mmelody_play (melody, victory_tune);
+        
     } else {
         game_over = 1;
         display_menu("DEFEAT :(");
-        //mmelody_play (melody, defeat_tune);
+        mmelody_play (melody, defeat_tune);
+        
     }
 }
 
@@ -190,11 +187,10 @@ void end_game(Player* player)
 //to a historical event :)
 void christmas_truce(void)
 {
-    //mmelody_play (melody, christmas_tune);
-
     game_over = 1;
-    const char* msg = "CHRISTMAS TRUCE, 1914";
-    display_menu(msg);
+    const char* msg = "CHRISTMAS TRUCE 1914";
+    display_menu(msg); 
+    mmelody_play (melody, christmas_tune);
 }
 
 
@@ -232,8 +228,9 @@ static void shoot (Player* player)
     } else {
         bullet = create_bullet(player->pos.x, player->pos.y, player->prev);
     }
-
+    
     Player* target = bullet->target;
+    
     while(!bullet->inactive) {
         player->next != NULL ? bullet->pos.y-- : bullet->pos.y--;
         //Hash contains doesn't returns pointer to sandbag, so we use a temp
@@ -250,9 +247,10 @@ static void shoot (Player* player)
             draw(&player1);
         } else if (bullet->pos.x == target->pos.x && bullet->pos.y == target->pos.y) {
             bullet = NULL;
-            state = !state;
-            led_set (LED1, state);
+            //state = !state;
+           // led_set (LED1, state);
             ir_uart_putc('V');
+
             end_game(&player1);
         } else if (bullet->pos.y >= LEDMAT_ROWS_NUM || bullet->pos.y < 0) {
             bullet->inactive = 1;
@@ -376,7 +374,7 @@ static void run_game_task (__unused__ void *data)
         show_menu = 0;
         game_over = 0;
         draw(&player1);
-
+        
     } else if (game_over && navswitch_push_event_p (NAVSWITCH_PUSH)) {
         init_positions (&player1);
         firstFree = 0;
@@ -407,13 +405,12 @@ static void run_game_task (__unused__ void *data)
             ir_uart_putc('L');
         } else if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
             shoot(&player1);
-            mmelody_play (melody, "G,");
         }
 
         col_type = player_collision_check (&player1);
         if(col_type) {
             ir_uart_putc('T');
-            christmas_truce();
+            christmas_truce();           
         } else if (player1.pos.y == 0) {
             ir_uart_putc('V');
             end_game(&player1);
