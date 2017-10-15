@@ -18,34 +18,34 @@
 #define TUNE_TASK_RATE 100
 #define TUNE_BPM_RATE 200
 
-static tweeter_scale_t scale_table[] = TWEETER_SCALE_TABLE (TWEETER_TASK_RATE);
-static tweeter_t tweeter;
-static mmelody_t melody;
-static mmelody_obj_t melody_info;
-static tweeter_obj_t tweeter_info;
+tweeter_scale_t scale_table[] = TWEETER_SCALE_TABLE (TWEETER_TASK_RATE);
+tweeter_t tweeter;
+mmelody_t melody;
+mmelody_obj_t melody_info;
+tweeter_obj_t tweeter_info;
 
-static const char menu_tune[] = {
+const char menu_tune[] = {
 #include "the_front_short.mmel"
     " :"
 };
 
-static const char christmas_tune[] = {
+const char christmas_tune[] = {
 #include "merry_christmas.mmel"
     " :"
 };
 
 static const char victory_tune[] = {
-    "ACCGF:"
+    "BBBA// AAAB// :"
 };
 
-static const char defeat_tune[] = {
+const char defeat_tune[] = {
     "F///G//:"
 };
 
 // initialise tweeter task
-static void tweeter_task_init (void)
+void tweeter_task_init (void);
 
 // initialise tune task
-static void tune_task_init (void)
+void tune_task_init (void);
 
 #endif

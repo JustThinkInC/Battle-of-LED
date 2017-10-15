@@ -3,7 +3,7 @@
 #include "mmelody.h"
 #include "pio.h"
 
-static void tweeter_task_init (void)
+void tweeter_task_init (void)
 {
     tweeter = tweeter_init (&tweeter_info, TWEETER_TASK_RATE, scale_table);
 
@@ -12,7 +12,7 @@ static void tweeter_task_init (void)
 
 }
 
-static void tune_task_init (void)
+void tune_task_init (void)
 {
     melody = mmelody_init (&melody_info, TUNE_TASK_RATE, 
 			   (mmelody_callback_t) tweeter_note_play, tweeter);

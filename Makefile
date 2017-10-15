@@ -16,7 +16,7 @@ all: game.out
 
 
 # Compile: create object files from C source files.
-game.o: game.c ../drivers/avr/system.h ../drivers/avr/pio.h ../drivers/navswitch.h struct_init.h hashmap.h move.h collision.h ../utils/tinygl.h ../utils/font.h ../utils/task.h ../drivers/avr/ir_uart.h ../drivers/avr/usart1.h ../extra/mmelody.h ../extra/ticker.h ../extra/tweeter.h
+game.o: game.c ../drivers/avr/system.h ../drivers/avr/pio.h ../drivers/navswitch.h struct_init.h hashmap.h move.h collision.h ../utils/tinygl.h ../utils/font.h ../utils/task.h ../drivers/avr/ir_uart.h ../drivers/avr/usart1.h ../extra/mmelody.h ../extra/ticker.h ../extra/tweeter.h sound.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 system.o: ../drivers/avr/system.c ../drivers/avr/system.h
@@ -79,9 +79,12 @@ ticker.o: ../extra/ticker.c
 tweeter.o: ../extra/tweeter.c ../drivers/avr/system.h ../extra/ticker.h ../extra/tweeter.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+sound.o: sound.c sound.h ../extra/tweeter.h ../drivers/avr/pio.h ../extra/mmelody.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
 
 # Link: create output file (executable) from object files.
-game.out: game.o system.o pio.o navswitch.o hashmap.o move.o collision.o timer.o ledmat.o display.o font.o tinygl.o task.o led.o timer0.o ir_uart.o prescale.o usart1.o mmelody.o ticker.o tweeter.o
+game.out: game.o system.o pio.o navswitch.o hashmap.o move.o collision.o timer.o ledmat.o display.o font.o tinygl.o task.o led.o timer0.o ir_uart.o prescale.o usart1.o mmelody.o ticker.o tweeter.o sound.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
