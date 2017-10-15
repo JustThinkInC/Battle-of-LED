@@ -1,6 +1,7 @@
-/* Description: Header file for the player, sandbag and bullet structs.
- * Author: George Khella
- * Date: October 2017
+/** @file   struct_init.h
+    @author George Khella
+    @date   October 2017.
+    @brief  Struct initialiser for player, sandbag and bullets.
 */
 
 #include "pio.h"
@@ -10,7 +11,7 @@
 #define STRUCT_INIT_H
 #define SANDBAG_HEALTH 2
 #define SANDBAG_NUM LEDMAT_COLS_NUM 
-//10 target sandbags with 2 health = 10 bullets + 20 for enemy = 30 bullets
+//5 target sandbags with 2 health = 10 bullets + 20 for enemy = 30 bullets
 #define MAX_NUM_BULLETS 30
 
 typedef struct sandbag_s SandBag;

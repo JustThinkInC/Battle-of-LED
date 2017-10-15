@@ -1,10 +1,9 @@
-/* Description: Header file for the hash table holding sandbags.
- *              This allows for faster O(1) collision checking instead of
- *              O(n).
- * Author: George Khella
- * Date: October 2017
+/** @file   hashmap.h
+    @author George Khella
+    @date   October 2017.
+    @brief  Header file for sandbag hash table. Used for O(1) collision
+            detection.
 */
-
 
 #include "struct_init.h"
 #include "pio.h"
@@ -12,14 +11,14 @@
 #ifndef HASHMAP_H
 #define HASHMAP_H
 
+//This functions hashes the given coordinates
 uint8_t hash(uint8_t x, uint8_t y);
 
-//Add item to hash table using Open Addressing with Linear Probing
-//Only need sandbags in hashtable so player parameter non-existent
+//Add sandbags to hash table
 void hash_add(SandBag sandbag);
 
-//Check whether the hash table contains a sandbag at current players coord.
-//Returns NULL if no sandbag at player's coord
+//Check whether the hash table contains a sandbag at a given coordinate.
+//Returns dud sandbag if none found
 SandBag hash_contains(uint8_t x, uint8_t y);
 #endif
 

@@ -1,7 +1,8 @@
-/* Description: Code for collision detector.
- * Author: George Khella
- * Date: September 2017
- */
+/** @file   collision.c
+    @author George Khella
+    @date   October 2017.
+    @brief  Collision detector for sandbags and players.
+*/
 
 #include "collision.h"
 #include "struct_init.h"
@@ -13,7 +14,6 @@ static uint8_t def_line[2] = {5, 1};
 //Check if player collided with a sandbag
 //Return 0, no collision
 //Return 1, collision with friendly sandbag, collision resolved if up/down
-//Return 2, collision with enemy sandbag
 uint8_t sandbag_collision (Player* player, uint8_t move_type)
 {
     /*Create a dummy variable to hold the player's new positions if
@@ -44,7 +44,7 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
     //Collision detection O(1) way...
     SandBag sandbag_temp = hash_contains(x_pos, y_pos);
     SandBag sandbag = sandbag_temp.parent->sandbags[sandbag_temp.pos.x];
-    
+
     if (sandbag.health <= 0) {
         return 0;
     } else if (sandbag.parent != player) {
@@ -55,6 +55,7 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
         } else if (move_type == DOWN) {
             move_down(player, 2);
         } else if (move_type == LEFT || move_type == RIGHT) {
+            //Check that the adjacent sandbag does not exist
             if(player->sandbags[x_pos].health <= 0) {
                 return 0;
             }

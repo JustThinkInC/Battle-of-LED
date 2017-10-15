@@ -1,15 +1,14 @@
-/* Description: Header files of player movement functions.
- * Author: George Khella
- * Date: September 2017
- */
-
+/** @file   move.h
+    @author George Khella
+    @date   October 2017.
+    @brief  Player movement header files.
+*/
 
 #include "pio.h"
 #include "struct_init.h"
 
 #ifndef MOVE_H
 #define MOVE_H
-
 
 //Movement types and values
 #define UP 1

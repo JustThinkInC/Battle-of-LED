@@ -1,7 +1,8 @@
-/* Description: Code for player movement functions.
- * Author: George Khella
- * Date: September 2017
- */
+/** @file   move.c
+    @author George Khella
+    @date   October 2017.
+    @brief  Player movement.
+*/
 
 #include "move.h"
 #include "stdlib.h"
@@ -38,7 +39,7 @@ void move_down(Player* player, uint8_t y_change)
 
 void move_left(Player* player)
 {
-    //Check player is not at left edge of led matrix
+    //Check player is not at left boundary already
     if (player->pos.x > 0) {
         player->pos.x--;
     }
@@ -46,7 +47,7 @@ void move_left(Player* player)
 
 void move_right(Player* player)
 {
-    //Check player is not at right edge of led matrix
+    //Check player is not at right boundary
     if (player->pos.x < LEDMAT_COLS_NUM-1) {
         player->pos.x++;
     }

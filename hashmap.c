@@ -1,20 +1,21 @@
-/* Description: Code file for hash map used by collision checker.
- *              Every sandbag is hashed into a hash table.
- * Author: George Khella
- * Date: October 2017
+/** @file   hashmap.c
+    @author George Khella
+    @date   October 2017.
+    @brief  Hashes coordinates, adds sandbag to hash table, checks for 
+            sandbag existence in hashtable.
 */
-
 
 #include "hashmap.h"
 #include "struct_init.h"
 #include "pio.h"
 #include "stdlib.h"
 
-#define HASH_TABLE_SIZE 11//LEDMAT_COLS_NUM*2+1
+//Hash table sizes needs to be prime, so add 1
+#define HASH_TABLE_SIZE LEDMAT_COLS_NUM * 2 + 1
 SandBag hash_table[HASH_TABLE_SIZE];
 
 
-/*Hash function that takes an x and y coord multiplies each one by an 
+/*Hash function that takes an x and y coord multiplies each one by an
  arbitrarily chosen number then computes the result modulo hash table size*/
 uint8_t hash(uint8_t x, uint8_t y)
 {
