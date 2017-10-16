@@ -26,12 +26,6 @@
 //Theo Harbers' Header files
 #include "sound.h"
 
-/* TODO:
- * Sound - Victory & Defeat
- * Modularity for sound
- * Code cleanup
- */
-
 
 /**NOTES:
    1)move up = y--, move down = y++
