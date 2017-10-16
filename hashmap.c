@@ -11,7 +11,7 @@
 #include "stdlib.h"
 
 //Hash table sizes needs to be prime, so add 1
-#define HASH_TABLE_SIZE LEDMAT_COLS_NUM * 2 + 1
+
 SandBag hash_table[HASH_TABLE_SIZE];
 
 
