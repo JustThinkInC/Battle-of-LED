@@ -24,7 +24,7 @@
 #include "collision.h"
 
 //Theo Harbers' Header files
-#include "sound.c"
+#include "sound.h"
 
 /* TODO:
  * Sound - Victory & Defeat
