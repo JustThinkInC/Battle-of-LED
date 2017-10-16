@@ -4,6 +4,16 @@
     @brief   BATTLE OF LED 1914 game code.
 */
 
+/*
+   This implements a top down shooter game. Players attempt to form a 
+   a gap in the opponent's trench by shooting sandbags. Players then try
+   to reach the end without being shot by the opponent, if they do so
+   successfully, they have won. Players only have 1 life and 1 hp, 
+   sandbags have 2 hp each. Bullets are plentiful, but spamming them 
+   will make an unarmed player.
+*/
+
+
 //Supplied header files, credits to their respective owners
 #include "stdlib.h"
 #include "system.h"
