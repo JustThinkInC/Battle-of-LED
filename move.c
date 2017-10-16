@@ -18,7 +18,11 @@ void move_up(Player* player, uint8_t y_change)
 
 void move_down(Player* player, uint8_t y_change)
 {
-    if (y_change < 10) {
+    
+    if(player->pos.y + y_change <= LEDMAT_ROWS_NUM-1) {
+        player->pos.y += y_change;
+    }
+    /*if (y_change < 10) {
         if (player->pos.y + y_change < 7 ) {
             player->pos.y += y_change;
         }
@@ -34,7 +38,7 @@ void move_down(Player* player, uint8_t y_change)
                 player->pos.y++;
             }
         }
-    }
+    }*/
 }
 
 void move_left(Player* player)
