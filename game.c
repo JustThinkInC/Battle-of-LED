@@ -346,7 +346,7 @@ static void run_game_task (__unused__ void *data)
             ir_uart_putc('D');
         } else if (navswitch_push_event_p (NAVSWITCH_SOUTH)) {
             col_type = sandbag_collision(&player1, DOWN);
-            (col_type == 0) ? move_down(&player1, 10) : 0;
+            (col_type == 0) ? move_down(&player1, 1) : 0;
             draw(&player1);
             ir_uart_putc('U');
         } else if (navswitch_push_event_p (NAVSWITCH_WEST)) {
