@@ -8,7 +8,7 @@ tweeter_scale_t scale_table[] = TWEETER_SCALE_TABLE (TWEETER_TASK_RATE);
 
 
 const char menu_tune[] = {
-#include "the_front_short.mmel"
+#include "the_front.mmel"
     " :"
 };
 
