@@ -38,15 +38,8 @@
      T=TRUCE and numbers are the sandbag slot numbers.
 **/
 
-//Defining pins for speaker
-/*#define PIEZO1_PIO PIO_DEFINE (PORT_D, 4)
-#define PIEZO2_PIO PIO_DEFINE (PORT_D, 6)
-
 //Polling rate of tasks in Hz
 //Values may need adjustmenst after testing.
-#define TWEETER_TASK_RATE 5000
-#define TUNE_TASK_RATE 100
-#define TUNE_BPM_RATE 200*/
 #define DISPLAY_TASK_RATE 300
 #define GAME_TASK_RATE 100
 
@@ -61,42 +54,6 @@ Player player2;
 
 static const char* game_title = "BATTLE OF LED 1914";
 
-// static variables for sound functionality
-/*static tweeter_scale_t scale_table[] = TWEETER_SCALE_TABLE (TWEETER_TASK_RATE);
-static tweeter_t tweeter;
-static mmelody_t melody;
-static mmelody_obj_t melody_info;
-static tweeter_obj_t tweeter_info;
-
-static const char menu_tune[] = {
-#include "the_front_short.mmel"
-    " :"
-};
-
-static const char christmas_tune[] = {
-#include "merry_christmas.mmel"
-    " :"
-};
-
-static const char victory_tune[] = {
-    "BBBA// AAAB// :"
-};
-
-static const char defeat_tune[] = {
-    "F///G//:"
-};
-
-
-
-static void tweeter_task_init (void)
-{
-    tweeter = tweeter_init (&tweeter_info, TWEETER_TASK_RATE, scale_table);
-
-    pio_config_set (PIEZO1_PIO, PIO_OUTPUT_LOW);
-    pio_config_set (PIEZO2_PIO, PIO_OUTPUT_LOW);
-
-}*/
-
 static void tweeter_task (__unused__ void *data)
 {
     bool state;
@@ -107,15 +64,6 @@ static void tweeter_task (__unused__ void *data)
     pio_output_set (PIEZO2_PIO, state);
 
 }
-
-/*static void tune_task_init (void)
-{
-    melody = mmelody_init (&melody_info, TUNE_TASK_RATE,
-                           (mmelody_callback_t) tweeter_note_play, tweeter);
-
-    mmelody_speed_set (melody, TUNE_BPM_RATE);
-}
-*/
 
 static void tune_task (__unused__ void *data)
 {
