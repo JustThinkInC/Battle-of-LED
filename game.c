@@ -49,7 +49,6 @@
 **/
 
 //Polling rate of tasks in Hz
-//Values may need adjustmenst after testing.
 #define DISPLAY_TASK_RATE 300
 #define GAME_TASK_RATE 100
 
@@ -64,17 +63,17 @@ Player player2;
 
 static const char* game_title = "BATTLE OF LED 1914";
 
+//This function updates the output state of the piezo IO pins
 static void tweeter_task (__unused__ void *data)
 {
     bool state;
-
     state = tweeter_update (tweeter);
 
     pio_output_set (PIEZO1_PIO, state);
     pio_output_set (PIEZO2_PIO, state);
-
 }
 
+//This function simply updates the melody
 static void tune_task (__unused__ void *data)
 {
     mmelody_update (melody);
