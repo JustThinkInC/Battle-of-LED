@@ -10,8 +10,6 @@
 #include "pio.h"
 #include "stdlib.h"
 
-//Hash table sizes needs to be prime, so add 1
-
 SandBag hash_table[HASH_TABLE_SIZE];
 
 
@@ -21,6 +19,7 @@ uint8_t hash(uint8_t x, uint8_t y)
 {
     //This formula gives different hashes for our scenario,
     uint8_t number = ((x*3 + y*5) << 3) % HASH_TABLE_SIZE;
+
 
     return number;
 }
@@ -46,6 +45,7 @@ SandBag hash_contains(uint8_t x, uint8_t y)
     if (sandbag.pos.x == x && sandbag.pos.y == y) {
         return sandbag;
     }
+    
 
     return dud;
 }

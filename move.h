@@ -16,11 +16,15 @@
 #define LEFT 3
 #define RIGHT 4
 
+//Move player up certain distance
 void move_up(Player* player, uint8_t y_change);
 
+//Move player down certain distance
 void move_down(Player* player, uint8_t y_change);
 
+//Move player 1 unit left
 void move_left(Player* player);
 
+//Move player 1 unit right
 void move_right(Player* player);
 #endif

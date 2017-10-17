@@ -7,40 +7,25 @@
 #include "move.h"
 #include "stdlib.h"
 
-//Movement functions look like the should be modular (imo).
-//Refer to the image if confused about how the coord system works here
+//This function moves the player up
 void move_up(Player* player, uint8_t y_change)
 {
+    //Check player wont go off screen
     if (player->pos.y - y_change >= 0) {
         player->pos.y -= y_change;
     }
 }
 
+//This function moves the player down
 void move_down(Player* player, uint8_t y_change)
 {
-    
+    //Check player won't be going off screen
     if(player->pos.y + y_change <= LEDMAT_ROWS_NUM-1) {
         player->pos.y += y_change;
     }
-    /*if (y_change < 10) {
-        if (player->pos.y + y_change < 7 ) {
-            player->pos.y += y_change;
-        }
-    } else {
-        //Check if player1 or player2
-        if(player->next != NULL) {
-            if (player->pos.y < 6 ) {
-                player->pos.y++;
-            }
-            //Need to fix this one, supposed to  be for player2
-        } else {
-            if (player->pos.y < LEDMAT_COLS_NUM) {
-                player->pos.y++;
-            }
-        }
-    }*/
 }
 
+//This function moves the player left by 1 unit
 void move_left(Player* player)
 {
     //Check player is not at left boundary already
@@ -49,6 +34,7 @@ void move_left(Player* player)
     }
 }
 
+//This function moves the player right by 1 unit
 void move_right(Player* player)
 {
     //Check player is not at right boundary

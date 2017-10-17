@@ -13,7 +13,6 @@
 #include "move.h"
 #include "hashmap.h"
 
-
 #ifndef COLLISION_H
 #define COLLISION_H
 

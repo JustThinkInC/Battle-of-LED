@@ -84,5 +84,6 @@ uint8_t player_collision_check (Player* player)
         }
     }
 
+
     return 0;
 }
