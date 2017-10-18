@@ -11,7 +11,7 @@
 #ifndef HASHMAP_H
 #define HASHMAP_H
 //Hash table sizes needs to be prime, so add 1
-#define HASH_TABLE_SIZE (LEDMAT_COLS_NUM * 2 + 1)
+#define HASH_TABLE_SIZE (SANDBAG_NUM * 2 + 1)
 
 //This functions hashes the given coordinates
 uint8_t hash(uint8_t x, uint8_t y);

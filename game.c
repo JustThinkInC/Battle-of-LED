@@ -55,7 +55,7 @@
 Bullet bulletPool[MAX_NUM_BULLETS]; //The bullet pool
 uint8_t firstFree = 0; //First free slot in the bullet pool
 static bool game_over = 0; //Used to check if game has ended.
-bool show_menu = 1; //Used to check if menu should be displayed
+static bool show_menu = 1; //Used to check if menu should be displayed
 
 //Create the players
 Player player1;
@@ -90,7 +90,7 @@ void display_menu (const char* msg)
     tinygl_update();
 }
 
-//Clears any drawings, then redraws all game objects
+//Clears all drawings, then redraws all game objects
 void draw(Player* player)
 {
     //Clear any melody playing and reset the display

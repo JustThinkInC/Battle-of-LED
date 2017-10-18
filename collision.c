@@ -11,9 +11,10 @@
 //This holds the row number of the trenches, 5 is for p1, 1 is for p1
 static uint8_t def_line[2] = {5, 1};
 
-//Check if player collided with a sandbag
-//Return 0, no collision
-//Return 1, collision with friendly sandbag, collision resolved if up/down
+/*Check if player collided with a sandbag
+  Return 0, no collision
+  Return 1, collision with friendly sandbag, resolved if up/down
+*/
 uint8_t sandbag_collision (Player* player, uint8_t move_type)
 {
     /*Create a dummy variable to hold the player's new positions if
@@ -41,7 +42,7 @@ uint8_t sandbag_collision (Player* player, uint8_t move_type)
         return 0;
     }
 
-    //Collision detection O(1) way...
+    //Collision detection O(1) way.
     SandBag sandbag_temp = hash_contains(x_pos, y_pos);
     SandBag sandbag = sandbag_temp.parent->sandbags[sandbag_temp.pos.x];
 
