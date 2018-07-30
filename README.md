@@ -1,9 +1,15 @@
-BATTLE OF LED, 1914
---George Khella & Theo Harbers
+# BATTLE OF LED, 1914
+Made by George Khella & Theo Harbers
 
 By continuing and/or downloading, you confirm that you have read and accepted 
-the license.
+the [license](LICENSE).
 
+The game is based around World War I. Each player has a trench of one sandbag row.
+The objective is to reach the other side of the board or kill the opponent. 
+Destroy opponent's sandbag to create a hole to get through. 
+
+
+# How to Run
 For compiling and running on a Linux machine do the following steps:
 1) Make sure you have the drivers/avr, drivers, utils, fonts and extras folders 
    and files from UC git repository
@@ -11,9 +17,9 @@ For compiling and running on a Linux machine do the following steps:
     make
 3) To compile and run the game on the avr:
     make program
+Sound is available with using a piezo buzzer.
 
-
-Playing the game:
+# Playing the game:
 1) Scrolling title text will appear, simply push down the joystick to start the 
    game.
 2) Every player has a trench and 30 bullets (more than enough!), every sandbag
