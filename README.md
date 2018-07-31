@@ -12,11 +12,12 @@ Destroy opponent's sandbag to create a hole to get through.
 # How to Run
 For compiling and running on a Linux machine do the following steps:
 1) Make sure you have the drivers/avr, drivers, utils, fonts and extras folders 
-   and files from UC git repository
-2) To compile the game, this will produce .hex, .o, and .bin files:
-    make
+   and files. Re-clone/download the git if not.
+2) To compile the game, this will produce .hex, .o, and .bin files, use the following command:
+    > make
 3) To compile and run the game on the avr:
-    make program
+    > make program
+    
 Sound is available with using a piezo buzzer.
 
 # Playing the game:
