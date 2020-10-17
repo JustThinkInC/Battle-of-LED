@@ -2,14 +2,17 @@
     @authors George Khella & Theo Harbers
     @date    October 2017.
     @brief   BATTLE OF LED 1914 game code.
+    @version 1.1
 */
 
+/* UPDATE: AI added for single player support. */
+
 /*
-   This implements a top down shooter game. Players attempt to form a 
+   This implements a top down shooter game. Players attempt to form a
    a gap in the opponent's trench by shooting sandbags. Players then try
    to reach the end without being shot by the opponent, if they do so
-   successfully, they have won. Players only have 1 life and 1 hp, 
-   sandbags have 2 hp each. Bullets are plentiful, but spamming them 
+   successfully, they have won. Players only have 1 life and 1 hp,
+   sandbags have 2 hp each. Bullets are plentiful, but spamming them
    will make an unarmed player.
 */
 
@@ -20,21 +23,25 @@
 #include "pio.h"
 #include "tinygl.h"
 #include "task.h"
-#include "../fonts/font3x5_1.h"
+#include "drivers/fonts/font3x5_1.h"
 #include "navswitch.h"
 #include "led.h"
 #include "ir_uart.h"
 #include "tweeter.h"
 #include "mmelody.h"
+#include "drivers/button.h"
+#include "led.h"
+
+
 
 //George Khella's header files
-#include "struct_init.h"
-#include "hashmap.h"
-#include "move.h"
-#include "collision.h"
+#include "own/struct_init.h"
+#include "own/hashmap.h"
+#include "own/move.h"
+#include "own/collision.h"
 
 //Theo Harbers' Header files
-#include "sound.h"
+#include "own/sound.h"
 
 
 /**NOTES:
@@ -51,11 +58,13 @@
 //Polling rate of tasks in Hz
 #define DISPLAY_TASK_RATE 300
 #define GAME_TASK_RATE 100
+#define BOT_RATE 25
 
 Bullet bulletPool[MAX_NUM_BULLETS]; //The bullet pool
 uint8_t firstFree = 0; //First free slot in the bullet pool
 static bool game_over = 0; //Used to check if game has ended.
 static bool show_menu = 1; //Used to check if menu should be displayed
+static bool singlePlayer = 0;
 
 //Create the players
 Player player1;
@@ -157,6 +166,7 @@ void christmas_truce(void)
 Bullet* create_bullet(uint8_t x_pos, uint8_t y_pos, Player* target)
 {
     Bullet* bullet = NULL;
+    firstFree = 0;
     if (firstFree < MAX_NUM_BULLETS) {
         bullet = &bulletPool[firstFree];
         firstFree++;
@@ -187,8 +197,8 @@ static void shoot (Player* player)
     Player* target = bullet->target;
 
     while(!bullet->inactive) {
-        player->next != NULL ? bullet->pos.y-- : bullet->pos.y--;
-        //Hash contains doesn't returns pointer to sandbag, so we use a temp
+        player->next != NULL ? bullet->pos.y-- : bullet->pos.y++;
+        //Hash contains doesn't return pointer to sandbag, so we use a temp
         //to point to the real sandbag
         SandBag sandbag_temp = hash_contains(bullet->pos.x, bullet->pos.y);
         SandBag* sandbag = &target->sandbags[sandbag_temp.slot];
@@ -198,13 +208,13 @@ static void shoot (Player* player)
             sandbag->health--;
             hash_add(*sandbag);
             bullet->inactive = 1;
-            ir_uart_putc((uint8_t)sandbag->slot);
+            !singlePlayer ? ir_uart_putc((uint8_t)sandbag->slot) : 0;
             draw(&player1);
         } else if (bullet->pos.x == target->pos.x && bullet->pos.y == target->pos.y) {
             bullet = NULL;
-            ir_uart_putc('V');
+            !singlePlayer ? ir_uart_putc('V') : 0;
 
-            end_game(&player1);
+            end_game(player);
         } else if (bullet->pos.y >= LEDMAT_ROWS_NUM || bullet->pos.y < 0) {
             bullet->inactive = 1;
         }
@@ -314,6 +324,47 @@ void init_positions (Player* player)
 }
 
 
+void play_bot (__unused__ void *data)
+{
+    //Implement random number generator
+    //40% chance of shooting, 20% chance move_up, 10% chance other movement
+    //10% chance do nothing
+    static bool state = 0;
+    if (singlePlayer && !game_over && !show_menu) {
+        uint8_t col_type = 0;
+        uint8_t num = rand() % 255; //bot is really fast, so using a max range
+        
+        if (num < 4) {
+            shoot(&player2);
+        } else if (num == 4) {
+            col_type = sandbag_collision(&player2, UP);
+            (col_type == 0) ? move_up(&player2, 1) : 0;
+            draw (&player1);
+        } else if (num == 5 || num == 6) {
+            col_type = sandbag_collision(&player2, DOWN);
+            (col_type == 0) ? move_down(&player2, 1) : 0;
+            draw (&player1);
+        } else if (num == 7) {
+            col_type = sandbag_collision(&player2, LEFT);
+            (col_type == 0) ? move_left(&player2) : 0;
+            draw (&player1);
+        } else if (num == 8) {
+            col_type = sandbag_collision(&player2, RIGHT);
+            (col_type == 0) ? move_right(&player2) : 0;
+            draw (&player1);
+        }
+        
+    } else if (show_menu) {
+        button_update();
+        if (button_push_event_p(0)) {
+            led_set(LED1, !state);
+            state = !state;
+            singlePlayer = !singlePlayer;
+        }
+    }
+
+}
+
 /*Checks for game events (e.g. movement) and calls neccessary functions
   to handle them
   Note that movements appear to be inverse of what they are to different
@@ -323,41 +374,40 @@ static void run_game_task (__unused__ void *data)
 {
     uint8_t col_type = 0;
     navswitch_update();
-
     //If we are at the main menu, then pushing down starts the game
     if (show_menu && navswitch_push_event_p (NAVSWITCH_PUSH)) {
         show_menu = 0;
         game_over = 0;
         draw(&player1);
-    //If game has ended, upon push down, we return to the main menu
+        //If game has ended, upon push down, we return to the main menu
     } else if (game_over && navswitch_push_event_p (NAVSWITCH_PUSH)) {
         init_positions (&player1);
         firstFree = 0;
         game_over = 0;
         show_menu = 1;
         display_menu(game_title);
-    //Game is running, we now check for the player's actions
+        //Game is running, we now check for the player's actions
     } else if (!game_over && !show_menu) {
         if (navswitch_push_event_p (NAVSWITCH_NORTH)) {
             col_type = sandbag_collision(&player1, UP);
             (col_type == 0) ? move_up(&player1, 1) : 0;
             draw(&player1);
-            ir_uart_putc('D');
+            !singlePlayer ? ir_uart_putc('D') : 0;
         } else if (navswitch_push_event_p (NAVSWITCH_SOUTH)) {
             col_type = sandbag_collision(&player1, DOWN);
             (col_type == 0) ? move_down(&player1, 1) : 0;
             draw(&player1);
-            ir_uart_putc('U');
+            !singlePlayer ? ir_uart_putc('U') : 0;
         } else if (navswitch_push_event_p (NAVSWITCH_WEST)) {
             col_type = sandbag_collision(&player1, LEFT);
             (col_type == 0) ? move_left(&player1) : 0;
             draw(&player1);
-            ir_uart_putc('R');
+            !singlePlayer ? ir_uart_putc('R') : 0;
         } else if (navswitch_push_event_p (NAVSWITCH_EAST)) {
             col_type = sandbag_collision(&player1, RIGHT);
             (col_type == 0) ? move_right(&player1) : 0;
             draw(&player1);
-            ir_uart_putc('L');
+            !singlePlayer ? ir_uart_putc('L') : 0;
         } else if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
             shoot(&player1);
         }
@@ -373,6 +423,8 @@ static void run_game_task (__unused__ void *data)
             //Inform opponent we have won
             ir_uart_putc('V');
             end_game(&player1);
+        } else if (player2.pos.y == 6) {
+            end_game(&player2);
         }
     }
 }
@@ -386,6 +438,7 @@ int main(void)
         {.func = display_task, .period = TASK_RATE / DISPLAY_TASK_RATE},
         {.func = run_game_task, .period = TASK_RATE / GAME_TASK_RATE},
         {.func = ir_recieve_task, .period = TASK_RATE / GAME_TASK_RATE},
+        {.func = play_bot, .period = TASK_RATE / BOT_RATE},
     };
 
     //Initialisation
@@ -402,6 +455,8 @@ int main(void)
     init_positions(&player1);
     //Show the main menu to the player
     display_menu(game_title);
+
+
 
     task_schedule (tasks, ARRAY_SIZE (tasks));
 
